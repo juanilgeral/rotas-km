@@ -762,12 +762,27 @@ const ORS_KEY = 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6ImE5MGQ2OTg
 
 async function geocode(place) {
   // Usa proxy CORS do Nominatim via allorigins
-  const nominatimUrl = 'https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=br&accept-language=pt-BR&q=' + encodeURIComponent(place);
+  // viewbox limita a região RJ/MG/ES/SP para evitar cidades homônimas em outros estados
+  const nominatimUrl = 'https://nominatim.openstreetmap.org/search'
+    + '?format=json&limit=1&countrycodes=br&accept-language=pt-BR'
+    + '&viewbox=-44.9,-23.4,-40.9,-20.7&bounded=1'
+    + '&q=' + encodeURIComponent(place);
   const proxyUrl = 'https://api.allorigins.win/get?url=' + encodeURIComponent(nominatimUrl);
   const r = await fetch(proxyUrl);
   const wrapper = await r.json();
   const d = JSON.parse(wrapper.contents);
-  if (!d || !d.length) throw new Error('Local não encontrado: ' + place);
+  if (!d || !d.length) {
+    // Tenta sem bounded se não achar na região
+    const nominatimUrl2 = 'https://nominatim.openstreetmap.org/search'
+      + '?format=json&limit=1&countrycodes=br&accept-language=pt-BR'
+      + '&q=' + encodeURIComponent(place);
+    const proxyUrl2 = 'https://api.allorigins.win/get?url=' + encodeURIComponent(nominatimUrl2);
+    const r2 = await fetch(proxyUrl2);
+    const wrapper2 = await r2.json();
+    const d2 = JSON.parse(wrapper2.contents);
+    if (!d2 || !d2.length) throw new Error('Local não encontrado: ' + place);
+    return [parseFloat(d2[0].lon), parseFloat(d2[0].lat)];
+  }
   return [parseFloat(d[0].lon), parseFloat(d[0].lat)];
 }
 
