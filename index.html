@@ -883,8 +883,7 @@ async function calcSingleCV(cod) {
   if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>'; }
   
   const origin = CDS.cv.place;
-  const endCV = CV_ENDERECOS[String(store.cod)];
-  const dest = endCV || (store.nome + ', Rio de Janeiro, Brasil');
+  const dest = 'Casa e Video ' + store.nome.replace(/\s*\d+$/, '').replace(/SHOPPING|PLAZA|CALÇADÃO|PREZUNIC|GUANABARA|PARK |WEST |NORTE |ILHA |BOULEVARD|PARTAGE|PÁTIO MIX|VILAR DOS TELES/gi, '').trim() + ', ' + store.uf + ', Brasil';
   
   try {
     const km = await getDistance(origin, dest);
@@ -920,8 +919,7 @@ async function calcAllCV() {
     await Promise.all(batch.map(async store => {
       if (cvResults[store.cod]) { done++; return; }
       try {
-        const endCV = CV_ENDERECOS[String(store.cod)];
-  const dest = endCV || (store.nome + ', Rio de Janeiro, Brasil');
+        const dest = 'Casa e Video ' + store.nome.replace(/\s*\d+$/, '').replace(/SHOPPING|PLAZA|CALÇADÃO|PREZUNIC|GUANABARA|PARK |WEST |NORTE |ILHA |BOULEVARD|PARTAGE|PÁTIO MIX|VILAR DOS TELES/gi, '').trim() + ', ' + store.uf + ', Brasil';
         const km = await getDistance('cv', dest);
         const routeUrl = buildRouteUrl('cv', dest);
         cvResults[store.cod] = { km, routeUrl };
@@ -1198,7 +1196,8 @@ async function calcSingleTR(filial) {
   const btn = document.getElementById('btn-tr-' + filial);
   if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>'; }
   try {
-    const km = await getDistance('tr', store.endereco);
+    const destTR = 'Tele Rio ' + store.nome + ', Rio de Janeiro, Brasil';
+    const km = await getDistance('tr', destTR);
     const routeUrl = buildRouteUrl('tr', store.endereco);
     trResults[filial] = { km, routeUrl };
     renderTRTable();
@@ -1222,7 +1221,8 @@ async function calcAllTR() {
     await Promise.all(batch.map(async store => {
       if (trResults[store.filial]) { done++; return; }
       try {
-        const km = await getDistance('tr', store.endereco);
+        const destTR = 'Tele Rio ' + store.nome + ', Rio de Janeiro, Brasil';
+    const km = await getDistance('tr', destTR);
         trResults[store.filial] = { km, routeUrl: buildRouteUrl('tr', store.endereco) };
       } catch(e) {}
       done++;
@@ -1270,7 +1270,8 @@ async function calcSingleHF(idx) {
   const btn = document.getElementById('btn-hf-' + idx);
   if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>'; }
   try {
-    const km = await getDistance('hf', store.endereco);
+    const destHF = 'Hortifruti ' + store.nome + ', Rio de Janeiro, Brasil';
+    const km = await getDistance('hf', destHF);
     const routeUrl = buildRouteUrl('hf', store.endereco);
     hfResults[idx] = { km, routeUrl };
     renderHFTable();
@@ -1295,7 +1296,8 @@ async function calcAllHF() {
       const idx = HF_STORES.indexOf(store);
       if (hfResults[idx]) { done++; return; }
       try {
-        const km = await getDistance('hf', store.endereco);
+        const destHF = 'Hortifruti ' + store.nome + ', Rio de Janeiro, Brasil';
+    const km = await getDistance('hf', destHF);
         hfResults[idx] = { km, routeUrl: buildRouteUrl('hf', store.endereco) };
       } catch(e) {}
       done++;
