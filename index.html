@@ -539,12 +539,24 @@
   <div class="search-box">
     <h3>Calcular KM — Lojas Tele-Rio</h3>
     <div class="search-row">
-      <input type="text" id="tr-dest" placeholder="Nome ou endereço da loja..." style="flex:2" />
-      <button class="btn" onclick="calcFreeFromCD('tr')" id="btn-tr-calc">📐 Calcular</button>
+      <input type="text" id="tr-filter" placeholder="Filtrar por nome..." oninput="filterTRTable()" />
+      <button class="btn" onclick="calcAllTR()" id="btn-calc-all-tr">⚡ Calcular Todas</button>
+      <button class="btn btn-danger btn-sm" onclick="clearTRResults()">🗑 Limpar</button>
+    </div>
+    <div class="progress-wrap" id="tr-progress">
+      <div class="progress-bar"><div class="progress-fill" id="tr-progress-fill"></div></div>
+      <div class="progress-label" id="tr-progress-label"></div>
     </div>
   </div>
-  <div id="tr-results"></div>
-  <div id="tr-saved-list" class="table-wrap" style="margin-top:16px;"></div>
+  <div class="filter-row"><span class="count-label" id="tr-count"></span></div>
+  <div class="table-wrap">
+    <table id="tr-table">
+      <thead>
+        <tr><th>FILIAL</th><th>LOJA</th><th>ENDEREÇO</th><th>KM NOSSO</th><th>STATUS</th><th>ROTA</th><th>CALC</th></tr>
+      </thead>
+      <tbody id="tr-tbody"></tbody>
+    </table>
+  </div>
 </div>
 
 <!-- ===== PANEL: HORTIFRÚTI ===== -->
@@ -563,12 +575,24 @@
   <div class="search-box">
     <h3>Calcular KM — Lojas Hortifrúti</h3>
     <div class="search-row">
-      <input type="text" id="hf-dest" placeholder="Nome ou endereço da loja..." style="flex:2" />
-      <button class="btn" onclick="calcFreeFromCD('hf')" id="btn-hf-calc">📐 Calcular</button>
+      <input type="text" id="hf-filter" placeholder="Filtrar por nome..." oninput="filterHFTable()" />
+      <button class="btn" onclick="calcAllHF()" id="btn-calc-all-hf">⚡ Calcular Todas</button>
+      <button class="btn btn-danger btn-sm" onclick="clearHFResults()">🗑 Limpar</button>
+    </div>
+    <div class="progress-wrap" id="hf-progress">
+      <div class="progress-bar"><div class="progress-fill" id="hf-progress-fill"></div></div>
+      <div class="progress-label" id="hf-progress-label"></div>
     </div>
   </div>
-  <div id="hf-results"></div>
-  <div id="hf-saved-list" class="table-wrap" style="margin-top:16px;"></div>
+  <div class="filter-row"><span class="count-label" id="hf-count"></span></div>
+  <div class="table-wrap">
+    <table id="hf-table">
+      <thead>
+        <tr><th>LOJA</th><th>ENDEREÇO</th><th>KM NOSSO</th><th>STATUS</th><th>ROTA</th><th>CALC</th></tr>
+      </thead>
+      <tbody id="hf-tbody"></tbody>
+    </table>
+  </div>
 </div>
 
 <!-- ===== PANEL: AMERICANAS ===== -->
@@ -687,6 +711,9 @@
 // =============================================
 //   DATA
 // =============================================
+const TR_STORES = [{"filial":2,"nome":"Madureira","endereco":"Rua Carvalho de Souza, 263, Rio de Janeiro, RJ, Brasil"},{"filial":3,"nome":"Campo Grande","endereco":"Rua Coronel Agostinho, 24, Rio de Janeiro, RJ, Brasil"},{"filial":4,"nome":"Centro Uruguaiana","endereco":"Rua Uruguaiana , 44 / 48, Rio de Janeiro, RJ, Brasil"},{"filial":6,"nome":"Centro Uruguaiana","endereco":"Rua Uruguaiana, 114/116, Rio de Janeiro, RJ, Brasil"},{"filial":8,"nome":"Copacabana","endereco":"Av. Nossa Senhora de Copacabana , 807, Rio de Janeiro, RJ, Brasil"},{"filial":9,"nome":"Méier","endereco":"Rua Dias da Cruz, 213, Rio de Janeiro, RJ, Brasil"},{"filial":13,"nome":"Bonsucesso","endereco":"Praça das Nações, 394 A/B, Rio de Janeiro, RJ, Brasil"},{"filial":15,"nome":"Nova Iguaçu","endereco":"Av.Governador Amaral Peixoto, 400, Nova Iguaçu, RJ, Brasil"},{"filial":16,"nome":"Niterói","endereco":"Rua São Pedro , 60, Niterói, RJ, Brasil"},{"filial":19,"nome":"Alcântara","endereco":"Praça Carlos Gianelli, 18, São Gonçalo, RJ, Brasil"},{"filial":21,"nome":"Petropolis","endereco":"Rua Paulo Barbosa, 2, Petrópolis, RJ, Brasil"},{"filial":26,"nome":"Bangu","endereco":"Av. Conego de Vasconcelos, 152, Rio de Janeiro, RJ, Brasil"},{"filial":27,"nome":"Taquara","endereco":"Rua Apiacas, 381, Rio de Janeiro, RJ, Brasil"},{"filial":28,"nome":"Duque de Caxias","endereco":"Rua Jose de Alvarenga, 426, Duque de Caxias, RJ, Brasil"},{"filial":32,"nome":"Queimados","endereco":"Praça Nossa Senhora da Conceição, Queimados, RJ, Brasil"},{"filial":33,"nome":"Anil","endereco":"Estrada de Jacarepaguá, 6069, Rio de Janeiro, RJ, Brasil"},{"filial":36,"nome":"Partage","endereco":"Avenida Presidente Kennedy,425, São Gonçalo, RJ, Brasil"},{"filial":37,"nome":"São João de Meriti","endereco":"Rua da Matriz, 36, São João de Meriti, RJ, Brasil"},{"filial":38,"nome":"Nilopolis","endereco":"Estrada Mirandela, 256, Nilópolis, RJ, Brasil"},{"filial":39,"nome":"Volta Redonda","endereco":"Rodovia dos Metalúrgicos, 1189, Volta Redonda, RJ, Brasil"},{"filial":40,"nome":"Norte Shopping","endereco":"Av. Dom Helder Câmara, 5474, Rio de Janeiro, RJ, Brasil"},{"filial":45,"nome":"Plaza Shopping","endereco":"Rua Quinze de Novembro, 8, Niterói, RJ, Brasil"},{"filial":43,"nome":"Shopping Madureira","endereco":"Estrada do Portela, 222, Rio de Janeiro, RJ, Brasil"},{"filial":42,"nome":"Carioca Shopping","endereco":"Avenida Vicente de Carvalho, 909, Rio de Janeiro, RJ, Brasil"},{"filial":41,"nome":"Nova América","endereco":"Avenida Pastor Martin Luther King Jr, 126, Rio de Janeiro, RJ, Brasil"}];
+const HF_STORES = [{"nome":"CD PAVUNA","endereco":"R Embau, 2207, Rio de Janeiro, RJ, Brasil"},{"nome":"MACAÉ","endereco":"R. Vereador Manoel Braga, 83, Macaé, RJ, Brasil"},{"nome":"CABO FRIO","endereco":"Av. Teixeira de Souza, 1441, Cabo Frio, RJ, Brasil"},{"nome":"CAMPOS","endereco":"R. Tenente Coronel Cardoso, 668, Campos dos Goytacazes, RJ, Brasil"},{"nome":"GRAJAU","endereco":"Rua barão do Bom Retiro 2683, Rio de Janeiro, RJ, Brasil"},{"nome":"BOTAFOGO","endereco":"R. Professor Alvaro Rodrigues, 355, Rio de Janeiro, RJ, Brasil"},{"nome":"TIJUCA","endereco":"Rua Conde de Bonfim, 199, Rio de Janeiro, RJ, Brasil"},{"nome":"VILA ISABEL","endereco":"Av. 28 de Setembro, 185, Rio de Janeiro, RJ, Brasil"},{"nome":"FLAMENGO","endereco":"R. Machado de Assis, 65, Rio de Janeiro, RJ, Brasil"},{"nome":"DIAS DA ROCHA","endereco":"R. Dias da Rocha, 45, Rio de Janeiro, RJ, Brasil"},{"nome":"ICARAI","endereco":"Av Ator Paulo Gustavo, 35, Niterói, RJ, Brasil"},{"nome":"SIQUEIRA CAMPOS","endereco":"R Siqueira Campos, 74, Rio de Janeiro, RJ, Brasil"},{"nome":"LEBLON","endereco":"R. Dias Ferreira, 67, Rio de Janeiro, RJ, Brasil"},{"nome":"M. PARANA","endereco":"R. Marques de Parana, 312, Niterói, RJ, Brasil"},{"nome":"PRADO JUNIOR","endereco":"Av. Prado Junior, 257, Rio de Janeiro, RJ, Brasil"},{"nome":"A5","endereco":"Av das Americas, 17150, Rio de Janeiro, RJ, Brasil"},{"nome":"REGIAO OCEANICA","endereco":"Estrada Franisco da Cruz Nunes, 5770, Niterói, RJ, Brasil"},{"nome":"LARANJEIRAS","endereco":"R. das Laranjeiras, 211, Rio de Janeiro, RJ, Brasil"},{"nome":"ABELARDO BUENO","endereco":"Av. Embaixador Abelardo Bueno, 2950, Rio de Janeiro, RJ, Brasil"},{"nome":"AV. AMERICAS","endereco":"Av Raimundo de Magalhaes Jr, 50, Rio de Janeiro, RJ, Brasil"},{"nome":"URUGUAI","endereco":"R. Uruguai, 213, Rio de Janeiro, RJ, Brasil"},{"nome":"ILHA DO GOVERNADOR","endereco":"Estrada do Galeão, 2220, Rio de Janeiro, RJ, Brasil"},{"nome":"ADALBERTO","endereco":"R. Adalberto Ferreira, 18, Rio de Janeiro, RJ, Brasil"},{"nome":"ABRANTES","endereco":"R. Marques de Abrantes, 192, Rio de Janeiro, RJ, Brasil"},{"nome":"RIO DAS OSTRAS","endereco":"Av. Brasil, 10, Rio das Ostras, RJ, Brasil"},{"nome":"SANTA ROSA","endereco":"R. Noronha Torrezão, 43, Niterói, RJ, Brasil"},{"nome":"VOLUNTARIOS","endereco":"R. Voluntarios da Patria, 323, Rio de Janeiro, RJ, Brasil"},{"nome":"BARRA BLUE","endereco":"Av das Americas, 12600, Rio de Janeiro, RJ, Brasil"},{"nome":"BARRA DA TIJUCA","endereco":"Praça Professor Souza Araujo,390, Rio de Janeiro, RJ, Brasil"},{"nome":"BARRA GARDEN","endereco":"Av das Americas, 3255, Rio de Janeiro, RJ, Brasil"},{"nome":"GAVEA","endereco":"R. Marquês de São Vicente, 115, Rio de Janeiro, RJ, Brasil"},{"nome":"INGÁ","endereco":"R. Doutor Nilo Peçanha, 80, Niterói, RJ, Brasil"},{"nome":"ATAULFO DE PAIVA","endereco":"Av. Ataulfo de Paiva, 80, Rio de Janeiro, RJ, Brasil"},{"nome":"VISCONDE DE PIRAJÁ","endereco":"Rua Visconde de Pirajá, 22, Rio de Janeiro, RJ, Brasil"},{"nome":"FREGUESIA","endereco":"Estrada dos Três Rios, 1011, Rio de Janeiro, RJ, Brasil"},{"nome":"SÃO CONRADO","endereco":"Estrada do Joá, 136, Rio de Janeiro, RJ, Brasil"},{"nome":"JUIZ DE FORA","endereco":"Av. Barão do Rio Branco, 3550, Juiz de Fora, MG, Brasil"},{"nome":"S. F. XAVIER","endereco":"R. São Francisco Xavier, 352, Rio de Janeiro, RJ, Brasil"},{"nome":"MARIZ E BARROS","endereco":"Rua Mariz e Barros, 554, Rio de Janeiro, RJ, Brasil"},{"nome":"CONDE DE BONFIM","endereco":"R. Conde de Bonfim, 456, Rio de Janeiro, RJ, Brasil"},{"nome":"MOREIRA CESAR","endereco":"Av. Ator Paulo Gustavo, 393, Niterói, RJ, Brasil"},{"nome":"ITAIPU","endereco":"Estrada Francisco da Cruz Nunes, 8758, Niterói, RJ, Brasil"},{"nome":"CARLOS GOIS","endereco":"Av. Ataulfo de Paiva, 458, Rio de Janeiro, RJ, Brasil"},{"nome":"MARACANÃ","endereco":"R. Visconde de Itamarati, 68, Rio de Janeiro, RJ, Brasil"},{"nome":"CB 648","endereco":"R. Conde de Bonfim, 648, Rio de Janeiro, RJ, Brasil"},{"nome":"HUMAITÁ","endereco":"Rua Humaita, 150, Rio de Janeiro, RJ, Brasil"},{"nome":"JARDIM BOTÂNICO","endereco":"Rua Maria Angelica, 183, Rio de Janeiro, RJ, Brasil"},{"nome":"ATERRADO","endereco":"Av. Paulo de Frontin, 874, Rio de Janeiro, RJ, Brasil"},{"nome":"RECREIO","endereco":"Av das Americas, 15109, Rio de Janeiro, RJ, Brasil"},{"nome":"CONDE 99","endereco":"Rua Conde de Bonfim, 99, Rio de Janeiro, RJ, Brasil"},{"nome":"CATETE","endereco":"Rua do Catete, 174, Rio de Janeiro, RJ, Brasil"},{"nome":"MARIZ 1083","endereco":"Rua Mariz e Barros, 1083, Rio de Janeiro, RJ, Brasil"},{"nome":"V. 157","endereco":"Rua Voluntarios da Patria, 157, Rio de Janeiro, RJ, Brasil"},{"nome":"NOVA IGUAÇU","endereco":"Av. Governador Roberto Silveira, 217, Nova Iguaçu, RJ, Brasil"},{"nome":"PASSAGEM","endereco":"Rua da Passagem, 133, Rio de Janeiro, RJ, Brasil"},{"nome":"MARIZ 312","endereco":"Rua mariz e Barros, 312, Rio de Janeiro, RJ, Brasil"},{"nome":"CAMPO GRANDE","endereco":"Estrada da Cachamorra, 200, Rio de Janeiro, RJ, Brasil"},{"nome":"BUZIOS","endereco":"Av. Jose Ribeiro Dantas, 5587, Búzios, RJ, Brasil"},{"nome":"LAR 49","endereco":"Rua das Laranjeiras, 49, Rio de Janeiro, RJ, Brasil"},{"nome":"PQ TAMANDARE","endereco":"R. Barão da Lagoa Dourada, 412, Petrópolis, RJ, Brasil"}];
+
 const CV_STORES = [{"cod":204,"nome":"TIJUCA 2","uf":"RJ","dist_cv":51.2},{"cod":205,"nome":"MÉIER","uf":"RJ","dist_cv":52.0},{"cod":225,"nome":"NOVA AMÉRICA","uf":"RJ","dist_cv":47.0},{"cod":228,"nome":"BARRA MANSA","uf":"RJ","dist_cv":85.0},{"cod":709,"nome":"Estrada do Cabuçu - Campo Grande","uf":"RJ","dist_cv":59.0},{"cod":240,"nome":"NORTE SHOPPING","uf":"RJ","dist_cv":48.0},{"cod":241,"nome":"COPACABANA","uf":"RJ","dist_cv":61.5},{"cod":243,"nome":"RECREIO DOS BANDEIRANTES","uf":"RJ","dist_cv":75.0},{"cod":714,"nome":"Goytacazes .Perto","uf":"RJ","dist_cv":317.0},{"cod":701,"nome":"Saracuruna","uf":"RJ","dist_cv":53.0},{"cod":725,"nome":"Além Paraíba .Perto","uf":"MG","dist_cv":182.0},{"cod":244,"nome":"ANGRA DOS REIS","uf":"RJ","dist_cv":119.0},{"cod":254,"nome":"ARARUAMA","uf":"RJ","dist_cv":157.0},{"cod":250,"nome":"TERESÓPOLIS","uf":"RJ","dist_cv":111.0},{"cod":711,"nome":"Arraial do Cabo .Perto","uf":"RJ","dist_cv":205.0},{"cod":252,"nome":"IGUATEMI","uf":"RJ","dist_cv":48.0},{"cod":253,"nome":"TOP SHOPPING","uf":"RJ","dist_cv":15.0},{"cod":727,"nome":"Arsenal - São Gonçalo .Perto","uf":"RJ","dist_cv":71.0},{"cod":255,"nome":"MADUREIRA","uf":"RJ","dist_cv":39.6},{"cod":716,"nome":"Austin .Perto 100","uf":"RJ","dist_cv":12.2},{"cod":258,"nome":"ILHA PLAZA","uf":"RJ","dist_cv":46.0},{"cod":259,"nome":"NILÓPOLIS","uf":"RJ","dist_cv":47.0},{"cod":260,"nome":"TIJUCA 3","uf":"RJ","dist_cv":51.0},{"cod":261,"nome":"SANTA CRUZ","uf":"RJ","dist_cv":69.0},{"cod":353,"nome":"BACAXÁ","uf":"RJ","dist_cv":157.0},{"cod":679,"nome":"Barra de São João","uf":"RJ","dist_cv":212.0},{"cod":264,"nome":"ITAIPÚ","uf":"RJ","dist_cv":71.0},{"cod":265,"nome":"WEST SHOPPING","uf":"RJ","dist_cv":56.8},{"cod":266,"nome":"NITERÓI 2","uf":"RJ","dist_cv":60.0},{"cod":267,"nome":"ITABORAÍ","uf":"RJ","dist_cv":92.0},{"cod":273,"nome":"CARIOCA","uf":"RJ","dist_cv":34.0},{"cod":274,"nome":"CENTER SHOPPING","uf":"RJ","dist_cv":58.6},{"cod":276,"nome":"TAQUARA","uf":"RJ","dist_cv":52.0},{"cod":279,"nome":"CAXIAS 3","uf":"RJ","dist_cv":35.6},{"cod":626,"nome":"Barra do Piraí","uf":"RJ","dist_cv":74.0},{"cod":581,"nome":"BETIM","uf":"MG","dist_cv":459.0},{"cod":288,"nome":"BELFORD ROXO 2","uf":"RJ","dist_cv":20.5},{"cod":289,"nome":"SÃO GONÇALO SHOPPING","uf":"RJ","dist_cv":71.0},{"cod":305,"nome":"BONSUCESSO 3","uf":"RJ","dist_cv":41.9},{"cod":306,"nome":"SIDER SHOPPING","uf":"RJ","dist_cv":85.3},{"cod":308,"nome":"SHOPPING RIO SUL","uf":"RJ","dist_cv":60.8},{"cod":309,"nome":"URUGUAIANA","uf":"RJ","dist_cv":58.6},{"cod":310,"nome":"NOVA IGUAÇÚ 3","uf":"RJ","dist_cv":18.0},{"cod":312,"nome":"PETRÓPOLIS 2","uf":"RJ","dist_cv":82.0},{"cod":313,"nome":"CALÇADÃO CAMPO GRANDE","uf":"RJ","dist_cv":60.0},{"cod":316,"nome":"IPANEMA","uf":"RJ","dist_cv":58.0},{"cod":318,"nome":"ALCÂNTARA 2","uf":"RJ","dist_cv":76.0},{"cod":319,"nome":"BANGÚ SHOPPING","uf":"RJ","dist_cv":46.0},{"cod":635,"nome":"BOM JESUS","uf":"RJ","dist_cv":348.0},{"cod":327,"nome":"CAXIAS SHOPPING","uf":"RJ","dist_cv":37.3},{"cod":329,"nome":"CORES DA LAPA","uf":"RJ","dist_cv":51.0},{"cod":330,"nome":"SÃO CRISTOVÃO","uf":"RJ","dist_cv":47.0},{"cod":331,"nome":"CATETE","uf":"RJ","dist_cv":54.0},{"cod":332,"nome":"ENGENHO NOVO","uf":"RJ","dist_cv":50.0},{"cod":333,"nome":"BARRA GUANABARA","uf":"RJ","dist_cv":67.0},{"cod":335,"nome":"SANTA CRUZ DA SERRA","uf":"RJ","dist_cv":53.0},{"cod":348,"nome":"BOULEVARD CAMPOS","uf":"RJ","dist_cv":315.0},{"cod":337,"nome":"PARK SHOPPING CAMPO GRANDE","uf":"RJ","dist_cv":63.2},{"cod":249,"nome":"CABO FRIO","uf":"RJ","dist_cv":196.0},{"cod":341,"nome":"ALEMÃO","uf":"RJ","dist_cv":39.9},{"cod":230,"nome":"CAMPOS","uf":"RJ","dist_cv":317.0},{"cod":344,"nome":"GUANABARA ALCÂNTARA","uf":"RJ","dist_cv":76.0},{"cod":697,"nome":"Campos Pelinca","uf":"RJ","dist_cv":320.0},{"cod":628,"nome":"CASIMIRO DE ABREU. PERTO","uf":"RJ","dist_cv":175.0},{"cod":644,"nome":"CIDADE DUTRA","uf":"SP","dist_cv":419.0},{"cod":350,"nome":"MIGUEL COUTO","uf":"RJ","dist_cv":21.2},{"cod":543,"nome":"CONSELHEIRO LAFAIETE II","uf":"MG","dist_cv":341.0},{"cod":354,"nome":"RECREIO FLAVIENSE (BRT)","uf":"RJ","dist_cv":72.0},{"cod":355,"nome":"SHOPPING RECREIO AMÉRICAS","uf":"RJ","dist_cv":77.0},{"cod":356,"nome":"PAVUNA","uf":"RJ","dist_cv":25.8},{"cod":582,"nome":"CONTAGEM","uf":"MG","dist_cv":442.0},{"cod":359,"nome":"VILAR DOS TELES","uf":"RJ","dist_cv":26.4},{"cod":360,"nome":"VARGEM GRANDE","uf":"RJ","dist_cv":66.02},{"cod":362,"nome":"MESQUITA","uf":"RJ","dist_cv":20.1},{"cod":365,"nome":"PARTAGE SÃO GONÇALO","uf":"RJ","dist_cv":72.5},{"cod":366,"nome":"CAXIAS PREZUNIC","uf":"RJ","dist_cv":35.7},{"cod":373,"nome":"PÁTIO MIX (ITAGUAÍ)","uf":"RJ","dist_cv":57.4},{"cod":374,"nome":"SÃO GONÇALO 1","uf":"RJ","dist_cv":70.5},{"cod":376,"nome":"VOLUNTÁRIOS DA PÁTRIA","uf":"RJ","dist_cv":58.0},{"cod":377,"nome":"ITABORAÍ PLAZA","uf":"RJ","dist_cv":84.9},{"cod":378,"nome":"MORRO AGUDO","uf":"RJ","dist_cv":9.7},{"cod":379,"nome":"ICARAÍ","uf":"RJ","dist_cv":60.1},{"cod":381,"nome":"PLAZA NITEROI","uf":"RJ","dist_cv":60.5},{"cod":385,"nome":"GUANABARA PENHA","uf":"RJ","dist_cv":36.0},{"cod":388,"nome":"JARDIM SULACAP","uf":"RJ","dist_cv":47.6},{"cod":389,"nome":"VILA VELHA","uf":"ES","dist_cv":556.0},{"cod":391,"nome":"SHOPPING PRAIA DA COSTA","uf":"ES","dist_cv":556.0},{"cod":395,"nome":"SHOPPING SUL","uf":"ES","dist_cv":556.0},{"cod":396,"nome":"SHOPPING MOXUARA","uf":"ES","dist_cv":556.0},{"cod":397,"nome":"SHOPPING MESTRE ALVARO","uf":"ES","dist_cv":556.0},{"cod":399,"nome":"CURICICA - COSTA AZUL","uf":"RJ","dist_cv":57.8},{"cod":401,"nome":"MAGÉ","uf":"RJ","dist_cv":85.2},{"cod":402,"nome":"GUANABARA CAMPINHO","uf":"RJ","dist_cv":40.0},{"cod":403,"nome":"SHOPPING NOVA IGUACU","uf":"RJ","dist_cv":17.1},{"cod":404,"nome":"PREZUNIC SANTA CRUZ","uf":"RJ","dist_cv":70.9},{"cod":682,"nome":"Coronel Fabriciano","uf":"MG","dist_cv":553.0},{"cod":572,"nome":"CURITIBA BH - RICARDO ELETRO","uf":"MG","dist_cv":438.0},{"cod":407,"nome":"CARIACICA","uf":"ES","dist_cv":556.0},{"cod":247,"nome":"GRANDE RIO","uf":"RJ","dist_cv":31.0},{"cod":412,"nome":"SANTA ROSA","uf":"RJ","dist_cv":67.7},{"cod":415,"nome":"RIO DAS PEDRAS","uf":"RJ","dist_cv":67.7},{"cod":426,"nome":"GUANABARA CAMPO GRANDE","uf":"RJ","dist_cv":33.7},{"cod":417,"nome":"MANILHA","uf":"RJ","dist_cv":84.3},{"cod":419,"nome":"Lote XV - Galpão","uf":"RJ","dist_cv":42.6},{"cod":421,"nome":"LINHARES","uf":"ES","dist_cv":556.0},{"cod":422,"nome":"CACHOEIRO DE ITAPEMIRIM","uf":"ES","dist_cv":556.0},{"cod":423,"nome":"FLAMENGO","uf":"RJ","dist_cv":56.4},{"cod":416,"nome":"GUARUS PLAZA SHOPPING","uf":"RJ","dist_cv":321.4},{"cod":538,"nome":"GUARAPARI","uf":"ES","dist_cv":556.0},{"cod":542,"nome":"METRO BARRA","uf":"RJ","dist_cv":69.2},{"cod":637,"nome":"IBIRITÉ","uf":"MG","dist_cv":445.0},{"cod":638,"nome":"Iguaba grande","uf":"RJ","dist_cv":170.0},{"cod":552,"nome":"RIO BONITO","uf":"RJ","dist_cv":120.0},{"cod":569,"nome":"INHOAÍBA - COSTA AZUL","uf":"RJ","dist_cv":36.6},{"cod":554,"nome":"GUAPIMIRIM","uf":"RJ","dist_cv":89.5},{"cod":566,"nome":"INOÃ","uf":"RJ","dist_cv":88.3},{"cod":556,"nome":"CENTRAL DO BRASIL","uf":"RJ","dist_cv":50.8},{"cod":588,"nome":"IPATINGA","uf":"MG","dist_cv":567.0},{"cod":558,"nome":"ITABIRA","uf":"MG","dist_cv":548.0},{"cod":560,"nome":"ILHA DO GOVERNADOR","uf":"RJ","dist_cv":49.0},{"cod":263,"nome":"ITAGUAÍ","uf":"RJ","dist_cv":51.0},{"cod":567,"nome":"Itaipava","uf":"RJ","dist_cv":100.0},{"cod":568,"nome":"ALAMEDA","uf":"RJ","dist_cv":46.5},{"cod":282,"nome":"ITAPERUNA","uf":"RJ","dist_cv":332.0},{"cod":571,"nome":"GLÓRIA - VILA VELHA","uf":"ES","dist_cv":556.0},{"cod":695,"nome":"Japeri. Perto","uf":"RJ","dist_cv":24.0},{"cod":573,"nome":"SERRA","uf":"ES","dist_cv":556.0},{"cod":578,"nome":"BÚZIOS II - LOJA PERTO","uf":"RJ","dist_cv":209.0},{"cod":703,"nome":"Jardim Alvorada - Nova Iguaçu. Perto","uf":"RJ","dist_cv":19.0},{"cod":338,"nome":"JARDIM GUADALUPE","uf":"RJ","dist_cv":37.0},{"cod":618,"nome":"LAGOINHA MG","uf":"MG","dist_cv":438.0},{"cod":591,"nome":"JACAREÍPE","uf":"ES","dist_cv":556.0},{"cod":600,"nome":"IMBARIÊ","uf":"RJ","dist_cv":57.3},{"cod":601,"nome":"PEDRA DE GUARATIBA","uf":"RJ","dist_cv":76.4},{"cod":603,"nome":"ASSAÍ SANTA CRUZ","uf":"RJ","dist_cv":68.4},{"cod":631,"nome":"LEOPOLDINA","uf":"MG","dist_cv":232.0},{"cod":245,"nome":"MACAÉ","uf":"RJ","dist_cv":227.0},{"cod":617,"nome":"GUARAPARI CENTRO","uf":"ES","dist_cv":556.0},{"cod":708,"nome":"Macaé .Perto","uf":"RJ","dist_cv":228.0},{"cod":621,"nome":"BARRA DE GUARATIBA","uf":"RJ","dist_cv":79.8},{"cod":605,"nome":"Manhuaçu","uf":"MG","dist_cv":425.0},{"cod":346,"nome":"MARICÁ","uf":"RJ","dist_cv":98.0},{"cod":655,"nome":"MIGUEL PEREIRA.PERTO","uf":"RJ","dist_cv":64.3},{"cod":248,"nome":"NOVA FRIBURGO","uf":"RJ","dist_cv":170.0},{"cod":622,"nome":"PARACAMBI","uf":"RJ","dist_cv":36.0},{"cod":633,"nome":"COLATINA","uf":"ES","dist_cv":556.0},{"cod":634,"nome":"LEME","uf":"RJ","dist_cv":61.0},{"cod":555,"nome":"PARAÍBA DO SUL - LOJA PERTO","uf":"RJ","dist_cv":123.0},{"cod":636,"nome":"Realengo","uf":"RJ","dist_cv":43.0},{"cod":671,"nome":"Paraty","uf":"RJ","dist_cv":213.0},{"cod":724,"nome":"Perequê Angra .Perto 100","uf":"RJ","dist_cv":212.0},{"cod":284,"nome":"PIABETÁ","uf":"RJ","dist_cv":64.0},{"cod":642,"nome":"PINDA","uf":"SP","dist_cv":242.0},{"cod":347,"nome":"QUEIMADOS","uf":"RJ","dist_cv":8.0},{"cod":731,"nome":"Quissamã .Perto 100","uf":"RJ","dist_cv":282.0},{"cod":649,"nome":"Pilares","uf":"RJ","dist_cv":38.6},{"cod":650,"nome":"MARATAÍSES. PERTO","uf":"ES","dist_cv":556.0},{"cod":651,"nome":"Tanguá .Perto","uf":"RJ","dist_cv":107.0},{"cod":251,"nome":"RESENDE","uf":"RJ","dist_cv":118.0},{"cod":654,"nome":"BELFORD ROXO CARREFOUR","uf":"RJ","dist_cv":21.4},{"cod":323,"nome":"RIO DAS OSTRAS","uf":"RJ","dist_cv":208.0},{"cod":545,"nome":"SANTA LUZIA","uf":"MG","dist_cv":460.0},{"cod":661,"nome":"JACARÉ - BANCO","uf":"RJ","dist_cv":49.6},{"cod":667,"nome":"Magarça","uf":"RJ","dist_cv":70.0},{"cod":668,"nome":"Aracruz","uf":"ES","dist_cv":556.0},{"cod":670,"nome":"Mauá - Jardim da Prata .Perto","uf":"RJ","dist_cv":72.1},{"cod":639,"nome":"SANTO ANTÔNIO DE PÁDUA.PERTO","uf":"RJ","dist_cv":255.0},{"cod":672,"nome":"SERRA. PERTO","uf":"ES","dist_cv":556.0},{"cod":674,"nome":"Viana .Perto","uf":"ES","dist_cv":556.0},{"cod":256,"nome":"SÃO JOÃO DE MERITI","uf":"RJ","dist_cv":25.0},{"cod":680,"nome":"Sooretama .Perto","uf":"ES","dist_cv":556.0},{"cod":409,"nome":"SÃO PEDRO DA ALDEIA","uf":"RJ","dist_cv":190.0},{"cod":684,"nome":"Barra de São Francisco .Perto","uf":"ES","dist_cv":556.0},{"cod":685,"nome":"Jaguaré .Perto","uf":"ES","dist_cv":556.0},{"cod":687,"nome":"São Francisco de Itabapoana .Perto","uf":"RJ","dist_cv":364.0},{"cod":691,"nome":"Jardim Catarina. Perto","uf":"RJ","dist_cv":78.3},{"cod":692,"nome":"Freguesia","uf":"RJ","dist_cv":55.6},{"cod":693,"nome":"Irajá","uf":"RJ","dist_cv":38.9},{"cod":694,"nome":"Vigário Geral","uf":"RJ","dist_cv":34.0},{"cod":406,"nome":"SEPETIBA","uf":"RJ","dist_cv":74.0},{"cod":557,"nome":"SETE LAGOAS","uf":"MG","dist_cv":504.0},{"cod":698,"nome":"Gramacho","uf":"RJ","dist_cv":40.0},{"cod":736,"nome":"SHOPP PARTAGE BETIM","uf":"MG","dist_cv":459.0},{"cod":702,"nome":"Serra Extrabom","uf":"ES","dist_cv":556.0},{"cod":735,"nome":"SHOPPING BIG","uf":"MG","dist_cv":442.0},{"cod":704,"nome":"Cachambi","uf":"RJ","dist_cv":50.0},{"cod":705,"nome":"Fragoso - Magé","uf":"RJ","dist_cv":69.7},{"cod":707,"nome":"Jardim Redentor .Perto","uf":"RJ","dist_cv":28.1},{"cod":405,"nome":"SHOPPING JARDIM NORTE","uf":"MG","dist_cv":181.0},{"cod":357,"nome":"SHOPPING PARK LAGOS","uf":"RJ","dist_cv":192.0},{"cod":640,"nome":"SHOPPING VALE DO AÇO - IPATINGA - V.V.","uf":"MG","dist_cv":567.0},{"cod":712,"nome":"Terra Vermelha - Vila Velha .Perto","uf":"ES","dist_cv":556.0},{"cod":336,"nome":"SHOPPING VIA BRASIL","uf":"RJ","dist_cv":28.0},{"cod":715,"nome":"KM32. PERTO","uf":"RJ","dist_cv":23.6},{"cod":629,"nome":"SILVA JARDIM - LOJA PERTO","uf":"RJ","dist_cv":151.0},{"cod":719,"nome":"Paciência","uf":"RJ","dist_cv":70.0},{"cod":720,"nome":"Centro Vila Velha","uf":"ES","dist_cv":556.0},{"cod":606,"nome":"Três Corações","uf":"MG","dist_cv":310.0},{"cod":262,"nome":"TRÊS RIOS","uf":"RJ","dist_cv":128.0},{"cod":653,"nome":"Unamar","uf":"RJ","dist_cv":204.0},{"cod":656,"nome":"URUCÂNIA","uf":"RJ","dist_cv":69.0},{"cod":343,"nome":"VOLTA REDONDA II","uf":"RJ","dist_cv":79.0},{"cod":553,"nome":"XERÉM","uf":"RJ","dist_cv":39.8},{"cod":418,"nome":"SEROPÉDICA","uf":"RJ","dist_cv":26.2},{"cod":739,"nome":"BOTAFOGO SÃO CLEMENTE","uf":"RJ","dist_cv":57.4}];
 
 // CD Origins (lat/lng from the Google Maps links)
@@ -712,6 +739,8 @@ let cdSavedResults = { tr: [], hf: [], am: [] };
 window.onload = () => {
   renderCVTable();
   renderCompTable();
+  renderTRTable();
+  renderHFTable();
 };
 
 // =============================================
@@ -841,7 +870,8 @@ async function calcSingleCV(cod) {
   if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>'; }
   
   const origin = CDS.cv.place;
-  const dest = `${store.nome}, ${store.uf === 'RJ' ? 'Rio de Janeiro' : store.uf === 'MG' ? 'Minas Gerais' : store.uf === 'ES' ? 'Espírito Santo' : store.uf === 'SP' ? 'São Paulo' : store.uf}, Brasil`;
+  const stateMap = {'RJ':'Rio de Janeiro','MG':'Minas Gerais','ES':'Espírito Santo','SP':'São Paulo'};
+  const dest = store.nome + ', ' + (stateMap[store.uf] || store.uf) + ', Brasil';
   
   try {
     const km = await getDistance(origin, dest);
@@ -877,7 +907,8 @@ async function calcAllCV() {
     await Promise.all(batch.map(async store => {
       if (cvResults[store.cod]) { done++; return; }
       try {
-        const dest = `${store.nome}, ${store.uf === 'RJ' ? 'Rio de Janeiro' : store.uf === 'MG' ? 'Minas Gerais' : store.uf === 'ES' ? 'Espírito Santo' : store.uf === 'SP' ? 'São Paulo' : store.uf}, Brasil`;
+        const stateMap = {'RJ':'Rio de Janeiro','MG':'Minas Gerais','ES':'Espírito Santo','SP':'São Paulo'};
+  const dest = store.nome + ', ' + (stateMap[store.uf] || store.uf) + ', Brasil';
         const km = await getDistance(CDS.cv.place, dest);
         const routeUrl = buildRouteUrl('cv', dest);
         cvResults[store.cod] = { km, routeUrl };
@@ -1120,6 +1151,153 @@ document.addEventListener('DOMContentLoaded', () => {
     if (el) el.addEventListener('keydown', e => { if (e.key === 'Enter') calcFreeFromCD(cd); });
   });
 });
+
+// =============================================
+//   TELE-RIO TABLE
+// =============================================
+let trResults = {};
+let trFiltered = [...TR_STORES];
+
+function renderTRTable() {
+  const q = (document.getElementById('tr-filter')?.value || '').toLowerCase();
+  trFiltered = TR_STORES.filter(s => !q || s.nome.toLowerCase().includes(q));
+  document.getElementById('tr-count').textContent = trFiltered.length + ' lojas';
+  document.getElementById('tr-tbody').innerHTML = trFiltered.map(s => {
+    const r = trResults[s.filial];
+    const routeUrl = r?.routeUrl || buildRouteUrl('tr', s.endereco);
+    return `<tr>
+      <td>${s.filial}</td>
+      <td>${s.nome}</td>
+      <td style="font-size:0.78rem;color:var(--muted)">${s.endereco.replace(', Rio de Janeiro, RJ, Brasil','').replace(', Brasil','')}</td>
+      <td>${r ? '<span class="km-our">'+r.km.toFixed(1)+'</span>' : '<span style="color:var(--muted)">—</span>'}</td>
+      <td>${r ? '<span class="status-badge status-ok">✓ Calc</span>' : '<span class="status-badge status-pend">● Pendente</span>'}</td>
+      <td><a href="${routeUrl}" target="_blank">🗺 Ver</a></td>
+      <td><button class="btn btn-sm" onclick="calcSingleTR(${s.filial})" id="btn-tr-${s.filial}">📐</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function filterTRTable() { renderTRTable(); }
+
+async function calcSingleTR(filial) {
+  const store = TR_STORES.find(s => s.filial === filial);
+  if (!store) return;
+  const btn = document.getElementById('btn-tr-' + filial);
+  if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>'; }
+  try {
+    const km = await getDistance(CDS.tr.place, store.endereco);
+    const routeUrl = buildRouteUrl('tr', store.endereco);
+    trResults[filial] = { km, routeUrl };
+    renderTRTable();
+  } catch(e) {
+    if (btn) { btn.disabled = false; btn.textContent = '⚠️'; }
+  }
+}
+
+async function calcAllTR() {
+  const stores = trFiltered;
+  const progress = document.getElementById('tr-progress');
+  const fill = document.getElementById('tr-progress-fill');
+  const label = document.getElementById('tr-progress-label');
+  const btn = document.getElementById('btn-calc-all-tr');
+  progress.style.display = 'block';
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Calculando...';
+  let done = 0;
+  for (let i = 0; i < stores.length; i += 3) {
+    const batch = stores.slice(i, i + 3);
+    await Promise.all(batch.map(async store => {
+      if (trResults[store.filial]) { done++; return; }
+      try {
+        const km = await getDistance(CDS.tr.place, store.endereco);
+        trResults[store.filial] = { km, routeUrl: buildRouteUrl('tr', store.endereco) };
+      } catch(e) {}
+      done++;
+      fill.style.width = Math.round((done/stores.length)*100) + '%';
+      label.textContent = done + ' / ' + stores.length + ' calculadas';
+    }));
+    renderTRTable();
+    await new Promise(r => setTimeout(r, 1000));
+  }
+  btn.disabled = false; btn.textContent = '⚡ Calcular Todas';
+  progress.style.display = 'none';
+}
+
+function clearTRResults() { if(confirm('Limpar?')) { trResults = {}; renderTRTable(); } }
+
+// =============================================
+//   HORTIFRÚTI TABLE
+// =============================================
+let hfResults = {};
+let hfFiltered = [...HF_STORES];
+
+function renderHFTable() {
+  const q = (document.getElementById('hf-filter')?.value || '').toLowerCase();
+  hfFiltered = HF_STORES.filter(s => !q || s.nome.toLowerCase().includes(q));
+  document.getElementById('hf-count').textContent = hfFiltered.length + ' lojas';
+  document.getElementById('hf-tbody').innerHTML = hfFiltered.map((s, i) => {
+    const r = hfResults[i];
+    const routeUrl = r?.routeUrl || buildRouteUrl('hf', s.endereco);
+    return `<tr>
+      <td>${s.nome}</td>
+      <td style="font-size:0.78rem;color:var(--muted)">${s.endereco.replace(', Rio de Janeiro, RJ, Brasil','').replace(', Brasil','')}</td>
+      <td>${r ? '<span class="km-our">'+r.km.toFixed(1)+'</span>' : '<span style="color:var(--muted)">—</span>'}</td>
+      <td>${r ? '<span class="status-badge status-ok">✓ Calc</span>' : '<span class="status-badge status-pend">● Pendente</span>'}</td>
+      <td><a href="${routeUrl}" target="_blank">🗺 Ver</a></td>
+      <td><button class="btn btn-sm" onclick="calcSingleHF(${i})" id="btn-hf-${i}">📐</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function filterHFTable() { renderHFTable(); }
+
+async function calcSingleHF(idx) {
+  const store = HF_STORES[idx];
+  if (!store) return;
+  const btn = document.getElementById('btn-hf-' + idx);
+  if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>'; }
+  try {
+    const km = await getDistance(CDS.hf.place, store.endereco);
+    const routeUrl = buildRouteUrl('hf', store.endereco);
+    hfResults[idx] = { km, routeUrl };
+    renderHFTable();
+  } catch(e) {
+    if (btn) { btn.disabled = false; btn.textContent = '⚠️'; }
+  }
+}
+
+async function calcAllHF() {
+  const stores = hfFiltered;
+  const progress = document.getElementById('hf-progress');
+  const fill = document.getElementById('hf-progress-fill');
+  const label = document.getElementById('hf-progress-label');
+  const btn = document.getElementById('btn-calc-all-hf');
+  progress.style.display = 'block';
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Calculando...';
+  let done = 0;
+  for (let i = 0; i < stores.length; i += 3) {
+    const batch = stores.slice(i, i + 3);
+    await Promise.all(batch.map(async (store, bi) => {
+      const idx = HF_STORES.indexOf(store);
+      if (hfResults[idx]) { done++; return; }
+      try {
+        const km = await getDistance(CDS.hf.place, store.endereco);
+        hfResults[idx] = { km, routeUrl: buildRouteUrl('hf', store.endereco) };
+      } catch(e) {}
+      done++;
+      fill.style.width = Math.round((done/stores.length)*100) + '%';
+      label.textContent = done + ' / ' + stores.length + ' calculadas';
+    }));
+    renderHFTable();
+    await new Promise(r => setTimeout(r, 1000));
+  }
+  btn.disabled = false; btn.textContent = '⚡ Calcular Todas';
+  progress.style.display = 'none';
+}
+
+function clearHFResults() { if(confirm('Limpar?')) { hfResults = {}; renderHFTable(); } }
+
 </script>
 </body>
 </html>
