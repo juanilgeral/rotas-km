@@ -761,10 +761,12 @@ function switchTab(id) {
 const ORS_KEY = 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6ImE5MGQ2OTg5MGM4YTRlZDdiNDkzZmY4NmMyNmQ3ZGFhIiwiaCI6Im11cm11cjY0In0=';
 
 async function geocode(place) {
-  // Usa Nominatim (OpenStreetMap) — gratuito, sem cadastro, sem cartão
-  const url = 'https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=br&q=' + encodeURIComponent(place);
-  const r = await fetch(url, { headers: { 'Accept-Language': 'pt-BR', 'User-Agent': 'RotasKM/1.0' } });
-  const d = await r.json();
+  // Usa proxy CORS do Nominatim via allorigins
+  const nominatimUrl = 'https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=br&accept-language=pt-BR&q=' + encodeURIComponent(place);
+  const proxyUrl = 'https://api.allorigins.win/get?url=' + encodeURIComponent(nominatimUrl);
+  const r = await fetch(proxyUrl);
+  const wrapper = await r.json();
+  const d = JSON.parse(wrapper.contents);
   if (!d || !d.length) throw new Error('Local não encontrado: ' + place);
   return [parseFloat(d[0].lon), parseFloat(d[0].lat)];
 }
