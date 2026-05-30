@@ -812,10 +812,12 @@ async function getDistance(originCdKeyOrCoords, destination) {
 }
 
 function buildRouteUrl(cdKey, destination) {
+  const coords = CD_COORDS[cdKey];
+  const origin = coords.lat + ',' + coords.lng;
   const cd = CDS[cdKey];
   const wp = cd.waypoints.map(w => encodeURIComponent(w)).join('%7C');
   return 'https://www.google.com/maps/dir/?api=1'
-    + '&origin=' + encodeURIComponent(cd.place)
+    + '&origin=' + origin
     + '&destination=' + encodeURIComponent(destination)
     + '&waypoints=' + wp
     + '&travelmode=driving';
