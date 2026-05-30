@@ -769,21 +769,34 @@ async function geocode(place) {
   return [parseFloat(d[0].lon), parseFloat(d[0].lat)];
 }
 
-async function getDistance(origin, destination) {
-  const [oLng, oLat] = await geocode(origin);
+// Coordenadas fixas dos CDs (origem sempre conhecida)
+const CD_COORDS = {
+  cv:  { lat: -22.7055, lng: -43.5568 }, // CD Casa & Video - Queimados
+  tr:  { lat: -22.8749, lng: -43.2849 }, // CD Tele-Rio
+  hf:  { lat: -22.9068, lng: -43.1729 }, // CD Hortifruti Centro RJ
+  am:  { lat: -22.8870, lng: -43.2760 }  // CD Americanas
+};
+
+let currentCdKey = 'cv';
+
+async function getDistance(originCdKeyOrCoords, destination) {
+  // Origin: se vier string de CD key, usa coords fixas; se vier coords, usa direto
+  let oLng, oLat;
+  if (typeof originCdKeyOrCoords === 'string' && CD_COORDS[originCdKeyOrCoords]) {
+    oLng = CD_COORDS[originCdKeyOrCoords].lng;
+    oLat = CD_COORDS[originCdKeyOrCoords].lat;
+  } else {
+    [oLng, oLat] = await geocode(originCdKeyOrCoords);
+  }
+  
   const [dLng, dLat] = await geocode(destination);
   
   const url = 'https://api.openrouteservice.org/v2/directions/driving-car';
-  const body = {
-    coordinates: [[oLng, oLat], [dLng, dLat]]
-  };
+  const body = { coordinates: [[oLng, oLat], [dLng, dLat]] };
   
   const r = await fetch(url, {
     method: 'POST',
-    headers: {
-      'Authorization': ORS_KEY,
-      'Content-Type': 'application/json'
-    },
+    headers: { 'Authorization': ORS_KEY, 'Content-Type': 'application/json' },
     body: JSON.stringify(body)
   });
   
@@ -793,8 +806,7 @@ async function getDistance(origin, destination) {
   }
   
   const d = await r.json();
-  const meters = d.routes[0].summary.distance;
-  return meters / 1000;
+  return d.routes[0].summary.distance / 1000;
 }
 
 function buildRouteUrl(cdKey, destination) {
@@ -906,7 +918,7 @@ async function calcAllCV() {
       try {
         const endCV = CV_ENDERECOS[String(store.cod)];
   const dest = endCV || (store.nome + ', Rio de Janeiro, Brasil');
-        const km = await getDistance(CDS.cv.place, dest);
+        const km = await getDistance('cv', dest);
         const routeUrl = buildRouteUrl('cv', dest);
         cvResults[store.cod] = { km, routeUrl };
         updateCompResult(store.cod, km, routeUrl);
@@ -949,7 +961,7 @@ async function calcFreeFromCD(cdKey) {
   btn.innerHTML = '<span class="spinner"></span> Calculando...';
   
   try {
-    const km = await getDistance(CDS[cdKey].place, dest);
+    const km = await getDistance(cdKey, dest);
     const routeUrl = buildRouteUrl(cdKey, dest);
     
     // Save to list
@@ -1010,7 +1022,7 @@ async function calcLivre() {
   el.innerHTML = '<div class="msg-box msg-info"><span class="spinner"></span> Calculando rota...</div>';
   
   try {
-    const km = await getDistance(CDS[cdKey].place, dest);
+    const km = await getDistance(cdKey, dest);
     const routeUrl = buildRouteUrl(cdKey, dest);
     el.innerHTML = `
       <div class="free-result">
@@ -1182,7 +1194,7 @@ async function calcSingleTR(filial) {
   const btn = document.getElementById('btn-tr-' + filial);
   if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>'; }
   try {
-    const km = await getDistance(CDS.tr.place, store.endereco);
+    const km = await getDistance('tr', store.endereco);
     const routeUrl = buildRouteUrl('tr', store.endereco);
     trResults[filial] = { km, routeUrl };
     renderTRTable();
@@ -1206,7 +1218,7 @@ async function calcAllTR() {
     await Promise.all(batch.map(async store => {
       if (trResults[store.filial]) { done++; return; }
       try {
-        const km = await getDistance(CDS.tr.place, store.endereco);
+        const km = await getDistance('tr', store.endereco);
         trResults[store.filial] = { km, routeUrl: buildRouteUrl('tr', store.endereco) };
       } catch(e) {}
       done++;
@@ -1254,7 +1266,7 @@ async function calcSingleHF(idx) {
   const btn = document.getElementById('btn-hf-' + idx);
   if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>'; }
   try {
-    const km = await getDistance(CDS.hf.place, store.endereco);
+    const km = await getDistance('hf', store.endereco);
     const routeUrl = buildRouteUrl('hf', store.endereco);
     hfResults[idx] = { km, routeUrl };
     renderHFTable();
@@ -1279,7 +1291,7 @@ async function calcAllHF() {
       const idx = HF_STORES.indexOf(store);
       if (hfResults[idx]) { done++; return; }
       try {
-        const km = await getDistance(CDS.hf.place, store.endereco);
+        const km = await getDistance('hf', store.endereco);
         hfResults[idx] = { km, routeUrl: buildRouteUrl('hf', store.endereco) };
       } catch(e) {}
       done++;
