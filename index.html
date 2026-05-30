@@ -1,0 +1,1146 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rotas & KMs — Gestão de Frota</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;900&family=Barlow:wght@300;400;500;600&display=swap');
+
+  :root {
+    --bg: #0d0f14;
+    --surface: #161922;
+    --surface2: #1e2330;
+    --border: #2a3045;
+    --accent: #f5a623;
+    --accent2: #e8385a;
+    --green: #2ecc71;
+    --red: #e74c3c;
+    --yellow: #f39c12;
+    --text: #e8eaf0;
+    --muted: #6b7590;
+    --cv: #0057b7;
+    --tr: #c8102e;
+    --hf: #2d8f47;
+    --am: #ff0000;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Barlow', sans-serif;
+    min-height: 100vh;
+  }
+
+  /* HEADER */
+  header {
+    background: var(--surface);
+    border-bottom: 2px solid var(--accent);
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 64px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  header h1 {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 900;
+    font-size: 1.6rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  header span {
+    font-size: 0.75rem;
+    color: var(--muted);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  /* API KEY BAR */
+  .api-bar {
+    background: #1a1030;
+    border-bottom: 1px solid #3a2060;
+    padding: 10px 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .api-bar label { font-size: 0.8rem; color: var(--muted); white-space: nowrap; }
+  .api-bar input {
+    flex: 1;
+    background: var(--surface2);
+    border: 1px solid #3a2060;
+    color: var(--text);
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    font-family: monospace;
+  }
+  .api-bar button {
+    background: var(--accent);
+    color: #000;
+    border: none;
+    padding: 6px 16px;
+    border-radius: 4px;
+    font-weight: 700;
+    font-size: 0.8rem;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  /* TABS */
+  .tabs {
+    display: flex;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    overflow-x: auto;
+  }
+  .tab {
+    padding: 14px 24px;
+    cursor: pointer;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 0.95rem;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--muted);
+    border-bottom: 3px solid transparent;
+    transition: all 0.2s;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .tab:hover { color: var(--text); }
+  .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .tab .dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+  }
+
+  /* PANELS */
+  .panel { display: none; padding: 24px; }
+  .panel.active { display: block; }
+
+  /* CD CARD */
+  .cd-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .cd-badge {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 900;
+    font-size: 1.2rem;
+    letter-spacing: 1px;
+    padding: 8px 14px;
+    border-radius: 6px;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+  .cd-info h3 { font-size: 0.9rem; font-weight: 600; }
+  .cd-info p { font-size: 0.78rem; color: var(--muted); margin-top: 2px; }
+  .cd-link {
+    margin-left: auto;
+    color: var(--accent);
+    font-size: 0.78rem;
+    text-decoration: none;
+    border: 1px solid var(--accent);
+    padding: 4px 10px;
+    border-radius: 4px;
+  }
+  .cd-link:hover { background: var(--accent); color: #000; }
+
+  /* SEARCH BOX */
+  .search-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin-bottom: 20px;
+  }
+  .search-box h3 {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 12px;
+  }
+  .search-row {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .search-row input, .search-row select {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 8px 14px;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-family: 'Barlow', sans-serif;
+  }
+  .search-row input { flex: 1; min-width: 200px; }
+  .btn {
+    background: var(--accent);
+    color: #000;
+    border: none;
+    padding: 8px 20px;
+    border-radius: 6px;
+    font-weight: 700;
+    font-size: 0.85rem;
+    cursor: pointer;
+    font-family: 'Barlow Condensed', sans-serif;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+  .btn:hover { opacity: 0.85; }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .btn-sm {
+    font-size: 0.75rem;
+    padding: 4px 10px;
+  }
+  .btn-danger { background: var(--accent2); color: #fff; }
+
+  /* RESULT CARD */
+  .result-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .result-card .store-name {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 1.05rem;
+    flex: 1;
+    min-width: 180px;
+  }
+  .result-card .km-badge {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 900;
+    font-size: 1.4rem;
+    color: var(--accent);
+  }
+  .result-card .sub { font-size: 0.75rem; color: var(--muted); }
+  .result-card a {
+    color: var(--accent);
+    font-size: 0.8rem;
+    text-decoration: none;
+    border: 1px solid var(--accent);
+    padding: 4px 10px;
+    border-radius: 4px;
+  }
+  .result-card a:hover { background: var(--accent); color: #000; }
+
+  /* TABLE */
+  .table-wrap { overflow-x: auto; border-radius: 8px; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+  }
+  th {
+    background: var(--surface2);
+    color: var(--muted);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    font-size: 0.78rem;
+    padding: 10px 14px;
+    text-align: left;
+    border-bottom: 2px solid var(--border);
+    cursor: pointer;
+    white-space: nowrap;
+    user-select: none;
+  }
+  th:hover { color: var(--text); }
+  th .sort-icon { margin-left: 4px; color: var(--accent); }
+  td {
+    padding: 9px 14px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+  }
+  tr:hover td { background: rgba(255,255,255,0.03); }
+  .uf-badge {
+    display: inline-block;
+    padding: 1px 6px;
+    border-radius: 3px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+  }
+  .diff-pos { color: var(--green); font-weight: 600; }
+  .diff-neg { color: var(--red); font-weight: 600; }
+  .diff-zero { color: var(--muted); }
+  .km-our { font-weight: 700; color: var(--accent); }
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.72rem;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-weight: 600;
+  }
+  .status-ok { background: rgba(46,204,113,0.15); color: var(--green); border: 1px solid rgba(46,204,113,0.3); }
+  .status-pend { background: rgba(243,156,18,0.15); color: var(--yellow); border: 1px solid rgba(243,156,18,0.3); }
+  .status-err { background: rgba(231,76,60,0.15); color: var(--red); border: 1px solid rgba(231,76,60,0.3); }
+
+  /* PROGRESS */
+  .progress-wrap {
+    margin: 12px 0;
+    display: none;
+  }
+  .progress-bar {
+    background: var(--border);
+    border-radius: 4px;
+    height: 6px;
+    overflow: hidden;
+    margin-bottom: 6px;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), #ff6b35);
+    border-radius: 4px;
+    transition: width 0.3s;
+    width: 0%;
+  }
+  .progress-label { font-size: 0.78rem; color: var(--muted); }
+
+  /* STATS ROW */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px;
+    text-align: center;
+  }
+  .stat-card .val {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 900;
+    font-size: 1.8rem;
+    line-height: 1;
+  }
+  .stat-card .lbl { font-size: 0.7rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; }
+
+  /* WAYPOINT INFO */
+  .route-info {
+    background: rgba(245,166,35,0.08);
+    border: 1px solid rgba(245,166,35,0.2);
+    border-radius: 6px;
+    padding: 10px 14px;
+    font-size: 0.8rem;
+    color: var(--muted);
+    margin-bottom: 16px;
+  }
+  .route-info strong { color: var(--accent); }
+
+  /* FILTER ROW */
+  .filter-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .filter-row input[type="text"] {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 7px 12px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    min-width: 200px;
+  }
+  .filter-row select {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 7px 12px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+  }
+  .count-label { font-size: 0.8rem; color: var(--muted); margin-left: auto; }
+
+  /* LOADING SPINNER */
+  .spinner {
+    display: inline-block;
+    width: 14px; height: 14px;
+    border: 2px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    vertical-align: middle;
+    margin-right: 6px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .msg-box {
+    padding: 10px 16px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    margin-bottom: 12px;
+  }
+  .msg-info { background: rgba(245,166,35,0.1); border: 1px solid rgba(245,166,35,0.25); color: var(--accent); }
+  .msg-success { background: rgba(46,204,113,0.1); border: 1px solid rgba(46,204,113,0.25); color: var(--green); }
+  .msg-error { background: rgba(231,76,60,0.1); border: 1px solid rgba(231,76,60,0.25); color: var(--red); }
+
+  /* FREE SEARCH RESULT */
+  .free-result {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px;
+    margin-top: 16px;
+  }
+  .free-result h3 {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 12px;
+  }
+  .free-result .km-big {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 900;
+    font-size: 3rem;
+    color: var(--accent);
+    line-height: 1;
+  }
+  .free-result .km-unit { font-size: 1rem; color: var(--muted); }
+
+  /* WAYPOINTS note */
+  .waypoints-note {
+    font-size: 0.72rem;
+    color: var(--muted);
+    font-style: italic;
+    margin-top: 4px;
+  }
+
+  /* DIFF LEGEND */
+  .legend {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+    font-size: 0.78rem;
+  }
+  .legend span { display: flex; align-items: center; gap: 5px; color: var(--muted); }
+
+  /* scrollbar */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  @media(max-width:600px) {
+    header h1 { font-size: 1.1rem; }
+    .panel { padding: 12px; }
+    td, th { padding: 7px 8px; font-size: 0.78rem; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🚛 Rotas & KMs</h1>
+  <span>Gestão de Frota · Rio de Janeiro</span>
+</header>
+
+<div class="api-bar">
+  <label>🔑 Google Maps API Key:</label>
+  <input type="password" id="apiKey" placeholder="Insira sua API Key do Google Maps..." />
+  <button onclick="saveApiKey()">Salvar</button>
+  <span id="apiStatus" style="font-size:0.78rem; color:var(--muted);"></span>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('cv')" id="tab-cv">
+    <span class="dot" style="background:#f5c800"></span>CASA &amp; VÍDEO
+  </div>
+  <div class="tab" onclick="switchTab('tr')" id="tab-tr">
+    <span class="dot" style="background:#5dbb6a"></span>TELE-RIO
+  </div>
+  <div class="tab" onclick="switchTab('hf')" id="tab-hf">
+    <span class="dot" style="background:#2d8f47"></span>HORTIFRÚTI
+  </div>
+  <div class="tab" onclick="switchTab('am')" id="tab-am">
+    <span class="dot" style="background:#ff0000"></span>AMERICANAS
+  </div>
+  <div class="tab" onclick="switchTab('livre')" id="tab-livre">
+    🔍 BUSCA LIVRE
+  </div>
+  <div class="tab" onclick="switchTab('comp')" id="tab-comp">
+    📊 COMPARATIVO C&V
+  </div>
+</div>
+
+<!-- ===== PANEL: CASA & VÍDEO ===== -->
+<div class="panel active" id="panel-cv">
+  <div class="cd-card">
+    <div class="cd-badge" style="background:#0057b7; color:#fff;">C&V</div>
+    <div class="cd-info">
+      <h3>CD Central Casa &amp; Vídeo</h3>
+      <p>Queimados, RJ — Rodovia Presidente Dutra / Avenida Brasil / Linha Amarela</p>
+    </div>
+    <a class="cd-link" href="https://maps.app.goo.gl/pfRJtascQoorksCj6" target="_blank">📍 Ver no Maps</a>
+  </div>
+
+  <div class="route-info">
+    <strong>Rotas obrigatórias:</strong> Rodovia Presidente Dutra → Avenida Brasil → Linha Amarela até o destino, usando a saída mais próxima para a via principal.
+  </div>
+
+  <div class="search-box">
+    <h3>Calcular KM — Lojas Casa &amp; Vídeo</h3>
+    <div class="search-row">
+      <input type="text" id="cv-filter" placeholder="Filtrar por nome ou código..." oninput="filterCVTable()" />
+      <select id="cv-uf" onchange="filterCVTable()">
+        <option value="">Todos UF</option>
+        <option>RJ</option><option>MG</option><option>ES</option><option>SP</option>
+      </select>
+      <button class="btn" onclick="calcAllCV()" id="btn-calc-all-cv">⚡ Calcular Todas</button>
+      <button class="btn btn-danger btn-sm" onclick="clearCVResults()">🗑 Limpar</button>
+    </div>
+    <div class="progress-wrap" id="cv-progress">
+      <div class="progress-bar"><div class="progress-fill" id="cv-progress-fill"></div></div>
+      <div class="progress-label" id="cv-progress-label"></div>
+    </div>
+  </div>
+
+  <div class="filter-row">
+    <span class="count-label" id="cv-count"></span>
+  </div>
+
+  <div class="table-wrap">
+    <table id="cv-table">
+      <thead>
+        <tr>
+          <th onclick="sortTable('cv','cod')">CÓD <span class="sort-icon">↕</span></th>
+          <th onclick="sortTable('cv','nome')">LOJA <span class="sort-icon">↕</span></th>
+          <th>UF</th>
+          <th onclick="sortTable('cv','dist_cv')">KM CLIENTE <span class="sort-icon">↕</span></th>
+          <th onclick="sortTable('cv','dist_our')">KM NOSSO <span class="sort-icon">↕</span></th>
+          <th>STATUS</th>
+          <th>ROTA</th>
+          <th>CALC</th>
+        </tr>
+      </thead>
+      <tbody id="cv-tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ===== PANEL: TELE-RIO ===== -->
+<div class="panel" id="panel-tr">
+  <div class="cd-card">
+    <div class="cd-badge" style="background:#c8102e; color:#fff;">TR</div>
+    <div class="cd-info">
+      <h3>CD GB Tele-Rio</h3>
+      <p>Rio de Janeiro, RJ — Rodovia Presidente Dutra / Avenida Brasil / Linha Amarela</p>
+    </div>
+    <a class="cd-link" href="https://maps.app.goo.gl/oKBYCUvwMbJ76kFVA" target="_blank">📍 Ver no Maps</a>
+  </div>
+  <div class="route-info">
+    <strong>Rotas obrigatórias:</strong> Rodovia Presidente Dutra → Avenida Brasil → Linha Amarela até o destino, usando a saída mais próxima para a via principal.
+  </div>
+  <div class="search-box">
+    <h3>Calcular KM — Lojas Tele-Rio</h3>
+    <div class="search-row">
+      <input type="text" id="tr-dest" placeholder="Nome ou endereço da loja..." style="flex:2" />
+      <button class="btn" onclick="calcFreeFromCD('tr')" id="btn-tr-calc">📐 Calcular</button>
+    </div>
+  </div>
+  <div id="tr-results"></div>
+  <div id="tr-saved-list" class="table-wrap" style="margin-top:16px;"></div>
+</div>
+
+<!-- ===== PANEL: HORTIFRÚTI ===== -->
+<div class="panel" id="panel-hf">
+  <div class="cd-card">
+    <div class="cd-badge" style="background:#2d8f47; color:#fff;">HF</div>
+    <div class="cd-info">
+      <h3>CD Hortifrúti — Centro RJ</h3>
+      <p>Rio de Janeiro, RJ — Rodovia Presidente Dutra / Avenida Brasil / Linha Amarela</p>
+    </div>
+    <a class="cd-link" href="https://maps.app.goo.gl/1ZWPTm6JxEkbxGrk9" target="_blank">📍 Ver no Maps</a>
+  </div>
+  <div class="route-info">
+    <strong>Rotas obrigatórias:</strong> Rodovia Presidente Dutra → Avenida Brasil → Linha Amarela até o destino, usando a saída mais próxima para a via principal.
+  </div>
+  <div class="search-box">
+    <h3>Calcular KM — Lojas Hortifrúti</h3>
+    <div class="search-row">
+      <input type="text" id="hf-dest" placeholder="Nome ou endereço da loja..." style="flex:2" />
+      <button class="btn" onclick="calcFreeFromCD('hf')" id="btn-hf-calc">📐 Calcular</button>
+    </div>
+  </div>
+  <div id="hf-results"></div>
+  <div id="hf-saved-list" class="table-wrap" style="margin-top:16px;"></div>
+</div>
+
+<!-- ===== PANEL: AMERICANAS ===== -->
+<div class="panel" id="panel-am">
+  <div class="cd-card">
+    <div class="cd-badge" style="background:#ff0000; color:#fff;">AM</div>
+    <div class="cd-info">
+      <h3>CD Lojas Americanas</h3>
+      <p>Rio de Janeiro, RJ — Rodovia Presidente Dutra / Avenida Brasil / Linha Amarela</p>
+    </div>
+    <a class="cd-link" href="https://maps.app.goo.gl/air2fQVZ5PuUY9eT8" target="_blank">📍 Ver no Maps</a>
+  </div>
+  <div class="route-info">
+    <strong>Rotas obrigatórias:</strong> Rodovia Presidente Dutra → Avenida Brasil → Linha Amarela até o destino, usando a saída mais próxima para a via principal.
+  </div>
+  <div class="search-box">
+    <h3>Calcular KM — Lojas Americanas</h3>
+    <div class="search-row">
+      <input type="text" id="am-dest" placeholder="Nome ou endereço da loja..." style="flex:2" />
+      <button class="btn" onclick="calcFreeFromCD('am')" id="btn-am-calc">📐 Calcular</button>
+    </div>
+  </div>
+  <div id="am-results"></div>
+  <div id="am-saved-list" class="table-wrap" style="margin-top:16px;"></div>
+</div>
+
+<!-- ===== PANEL: BUSCA LIVRE ===== -->
+<div class="panel" id="panel-livre">
+  <div class="search-box">
+    <h3>Busca Livre de Distância</h3>
+    <div class="search-row">
+      <select id="livre-cd" style="min-width:180px;">
+        <option value="cv">CD Casa &amp; Vídeo (Queimados)</option>
+        <option value="tr">CD Tele-Rio</option>
+        <option value="hf">CD Hortifrúti (Centro RJ)</option>
+        <option value="am">CD Americanas</option>
+      </select>
+      <input type="text" id="livre-dest" placeholder="Digite o nome da loja, bairro ou endereço..." style="flex:2" />
+      <button class="btn" onclick="calcLivre()">📐 Calcular KM</button>
+    </div>
+  </div>
+  <div id="livre-result"></div>
+</div>
+
+<!-- ===== PANEL: COMPARATIVO ===== -->
+<div class="panel" id="panel-comp">
+  <div class="cd-card">
+    <div class="cd-badge" style="background:#0057b7; color:#fff;">C&V</div>
+    <div class="cd-info">
+      <h3>Comparativo — Casa &amp; Vídeo</h3>
+      <p>KMs fornecidos pelo cliente vs. KMs calculados pela nossa API do Google Maps</p>
+    </div>
+  </div>
+
+  <div class="stats-row" id="comp-stats">
+    <div class="stat-card">
+      <div class="val" id="stat-total">205</div>
+      <div class="lbl">Lojas</div>
+    </div>
+    <div class="stat-card">
+      <div class="val" id="stat-calc" style="color:var(--green)">0</div>
+      <div class="lbl">Calculadas</div>
+    </div>
+    <div class="stat-card">
+      <div class="val" id="stat-maior" style="color:var(--red)">—</div>
+      <div class="lbl">Dif. máx (km)</div>
+    </div>
+    <div class="stat-card">
+      <div class="val" id="stat-media" style="color:var(--yellow)">—</div>
+      <div class="lbl">Dif. média</div>
+    </div>
+  </div>
+
+  <div class="legend">
+    <span><span style="color:var(--green)">▲</span> Nosso KM maior (mais distância)</span>
+    <span><span style="color:var(--red)">▼</span> Nosso KM menor</span>
+    <span><span style="color:var(--muted)">●</span> Igual / sem dados</span>
+  </div>
+
+  <div class="filter-row">
+    <input type="text" id="comp-filter" placeholder="Filtrar loja..." oninput="filterComp()" />
+    <select id="comp-uf" onchange="filterComp()">
+      <option value="">Todos UF</option>
+      <option>RJ</option><option>MG</option><option>ES</option><option>SP</option>
+    </select>
+    <select id="comp-status" onchange="filterComp()">
+      <option value="">Todos status</option>
+      <option value="calc">Calculados</option>
+      <option value="pend">Pendentes</option>
+      <option value="maior">Nosso maior</option>
+      <option value="menor">Nosso menor</option>
+    </select>
+    <span class="count-label" id="comp-count"></span>
+  </div>
+
+  <div class="table-wrap">
+    <table id="comp-table">
+      <thead>
+        <tr>
+          <th onclick="sortCompTable('cod')">CÓD <span class="sort-icon">↕</span></th>
+          <th onclick="sortCompTable('nome')">LOJA <span class="sort-icon">↕</span></th>
+          <th>UF</th>
+          <th onclick="sortCompTable('dist_cv')">KM CLIENTE <span class="sort-icon">↕</span></th>
+          <th onclick="sortCompTable('dist_our')">KM NOSSO <span class="sort-icon">↕</span></th>
+          <th onclick="sortCompTable('diff')">DIFERENÇA <span class="sort-icon">↕</span></th>
+          <th>STATUS</th>
+          <th>ROTA</th>
+        </tr>
+      </thead>
+      <tbody id="comp-tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+// =============================================
+//   DATA
+// =============================================
+const CV_STORES = [{"cod":204,"nome":"TIJUCA 2","uf":"RJ","dist_cv":51.2},{"cod":205,"nome":"MÉIER","uf":"RJ","dist_cv":52.0},{"cod":225,"nome":"NOVA AMÉRICA","uf":"RJ","dist_cv":47.0},{"cod":228,"nome":"BARRA MANSA","uf":"RJ","dist_cv":85.0},{"cod":709,"nome":"Estrada do Cabuçu - Campo Grande","uf":"RJ","dist_cv":59.0},{"cod":240,"nome":"NORTE SHOPPING","uf":"RJ","dist_cv":48.0},{"cod":241,"nome":"COPACABANA","uf":"RJ","dist_cv":61.5},{"cod":243,"nome":"RECREIO DOS BANDEIRANTES","uf":"RJ","dist_cv":75.0},{"cod":714,"nome":"Goytacazes .Perto","uf":"RJ","dist_cv":317.0},{"cod":701,"nome":"Saracuruna","uf":"RJ","dist_cv":53.0},{"cod":725,"nome":"Além Paraíba .Perto","uf":"MG","dist_cv":182.0},{"cod":244,"nome":"ANGRA DOS REIS","uf":"RJ","dist_cv":119.0},{"cod":254,"nome":"ARARUAMA","uf":"RJ","dist_cv":157.0},{"cod":250,"nome":"TERESÓPOLIS","uf":"RJ","dist_cv":111.0},{"cod":711,"nome":"Arraial do Cabo .Perto","uf":"RJ","dist_cv":205.0},{"cod":252,"nome":"IGUATEMI","uf":"RJ","dist_cv":48.0},{"cod":253,"nome":"TOP SHOPPING","uf":"RJ","dist_cv":15.0},{"cod":727,"nome":"Arsenal - São Gonçalo .Perto","uf":"RJ","dist_cv":71.0},{"cod":255,"nome":"MADUREIRA","uf":"RJ","dist_cv":39.6},{"cod":716,"nome":"Austin .Perto 100","uf":"RJ","dist_cv":12.2},{"cod":258,"nome":"ILHA PLAZA","uf":"RJ","dist_cv":46.0},{"cod":259,"nome":"NILÓPOLIS","uf":"RJ","dist_cv":47.0},{"cod":260,"nome":"TIJUCA 3","uf":"RJ","dist_cv":51.0},{"cod":261,"nome":"SANTA CRUZ","uf":"RJ","dist_cv":69.0},{"cod":353,"nome":"BACAXÁ","uf":"RJ","dist_cv":157.0},{"cod":679,"nome":"Barra de São João","uf":"RJ","dist_cv":212.0},{"cod":264,"nome":"ITAIPÚ","uf":"RJ","dist_cv":71.0},{"cod":265,"nome":"WEST SHOPPING","uf":"RJ","dist_cv":56.8},{"cod":266,"nome":"NITERÓI 2","uf":"RJ","dist_cv":60.0},{"cod":267,"nome":"ITABORAÍ","uf":"RJ","dist_cv":92.0},{"cod":273,"nome":"CARIOCA","uf":"RJ","dist_cv":34.0},{"cod":274,"nome":"CENTER SHOPPING","uf":"RJ","dist_cv":58.6},{"cod":276,"nome":"TAQUARA","uf":"RJ","dist_cv":52.0},{"cod":279,"nome":"CAXIAS 3","uf":"RJ","dist_cv":35.6},{"cod":626,"nome":"Barra do Piraí","uf":"RJ","dist_cv":74.0},{"cod":581,"nome":"BETIM","uf":"MG","dist_cv":459.0},{"cod":288,"nome":"BELFORD ROXO 2","uf":"RJ","dist_cv":20.5},{"cod":289,"nome":"SÃO GONÇALO SHOPPING","uf":"RJ","dist_cv":71.0},{"cod":305,"nome":"BONSUCESSO 3","uf":"RJ","dist_cv":41.9},{"cod":306,"nome":"SIDER SHOPPING","uf":"RJ","dist_cv":85.3},{"cod":308,"nome":"SHOPPING RIO SUL","uf":"RJ","dist_cv":60.8},{"cod":309,"nome":"URUGUAIANA","uf":"RJ","dist_cv":58.6},{"cod":310,"nome":"NOVA IGUAÇÚ 3","uf":"RJ","dist_cv":18.0},{"cod":312,"nome":"PETRÓPOLIS 2","uf":"RJ","dist_cv":82.0},{"cod":313,"nome":"CALÇADÃO CAMPO GRANDE","uf":"RJ","dist_cv":60.0},{"cod":316,"nome":"IPANEMA","uf":"RJ","dist_cv":58.0},{"cod":318,"nome":"ALCÂNTARA 2","uf":"RJ","dist_cv":76.0},{"cod":319,"nome":"BANGÚ SHOPPING","uf":"RJ","dist_cv":46.0},{"cod":635,"nome":"BOM JESUS","uf":"RJ","dist_cv":348.0},{"cod":327,"nome":"CAXIAS SHOPPING","uf":"RJ","dist_cv":37.3},{"cod":329,"nome":"CORES DA LAPA","uf":"RJ","dist_cv":51.0},{"cod":330,"nome":"SÃO CRISTOVÃO","uf":"RJ","dist_cv":47.0},{"cod":331,"nome":"CATETE","uf":"RJ","dist_cv":54.0},{"cod":332,"nome":"ENGENHO NOVO","uf":"RJ","dist_cv":50.0},{"cod":333,"nome":"BARRA GUANABARA","uf":"RJ","dist_cv":67.0},{"cod":335,"nome":"SANTA CRUZ DA SERRA","uf":"RJ","dist_cv":53.0},{"cod":348,"nome":"BOULEVARD CAMPOS","uf":"RJ","dist_cv":315.0},{"cod":337,"nome":"PARK SHOPPING CAMPO GRANDE","uf":"RJ","dist_cv":63.2},{"cod":249,"nome":"CABO FRIO","uf":"RJ","dist_cv":196.0},{"cod":341,"nome":"ALEMÃO","uf":"RJ","dist_cv":39.9},{"cod":230,"nome":"CAMPOS","uf":"RJ","dist_cv":317.0},{"cod":344,"nome":"GUANABARA ALCÂNTARA","uf":"RJ","dist_cv":76.0},{"cod":697,"nome":"Campos Pelinca","uf":"RJ","dist_cv":320.0},{"cod":628,"nome":"CASIMIRO DE ABREU. PERTO","uf":"RJ","dist_cv":175.0},{"cod":644,"nome":"CIDADE DUTRA","uf":"SP","dist_cv":419.0},{"cod":350,"nome":"MIGUEL COUTO","uf":"RJ","dist_cv":21.2},{"cod":543,"nome":"CONSELHEIRO LAFAIETE II","uf":"MG","dist_cv":341.0},{"cod":354,"nome":"RECREIO FLAVIENSE (BRT)","uf":"RJ","dist_cv":72.0},{"cod":355,"nome":"SHOPPING RECREIO AMÉRICAS","uf":"RJ","dist_cv":77.0},{"cod":356,"nome":"PAVUNA","uf":"RJ","dist_cv":25.8},{"cod":582,"nome":"CONTAGEM","uf":"MG","dist_cv":442.0},{"cod":359,"nome":"VILAR DOS TELES","uf":"RJ","dist_cv":26.4},{"cod":360,"nome":"VARGEM GRANDE","uf":"RJ","dist_cv":66.02},{"cod":362,"nome":"MESQUITA","uf":"RJ","dist_cv":20.1},{"cod":365,"nome":"PARTAGE SÃO GONÇALO","uf":"RJ","dist_cv":72.5},{"cod":366,"nome":"CAXIAS PREZUNIC","uf":"RJ","dist_cv":35.7},{"cod":373,"nome":"PÁTIO MIX (ITAGUAÍ)","uf":"RJ","dist_cv":57.4},{"cod":374,"nome":"SÃO GONÇALO 1","uf":"RJ","dist_cv":70.5},{"cod":376,"nome":"VOLUNTÁRIOS DA PÁTRIA","uf":"RJ","dist_cv":58.0},{"cod":377,"nome":"ITABORAÍ PLAZA","uf":"RJ","dist_cv":84.9},{"cod":378,"nome":"MORRO AGUDO","uf":"RJ","dist_cv":9.7},{"cod":379,"nome":"ICARAÍ","uf":"RJ","dist_cv":60.1},{"cod":381,"nome":"PLAZA NITEROI","uf":"RJ","dist_cv":60.5},{"cod":385,"nome":"GUANABARA PENHA","uf":"RJ","dist_cv":36.0},{"cod":388,"nome":"JARDIM SULACAP","uf":"RJ","dist_cv":47.6},{"cod":389,"nome":"VILA VELHA","uf":"ES","dist_cv":556.0},{"cod":391,"nome":"SHOPPING PRAIA DA COSTA","uf":"ES","dist_cv":556.0},{"cod":395,"nome":"SHOPPING SUL","uf":"ES","dist_cv":556.0},{"cod":396,"nome":"SHOPPING MOXUARA","uf":"ES","dist_cv":556.0},{"cod":397,"nome":"SHOPPING MESTRE ALVARO","uf":"ES","dist_cv":556.0},{"cod":399,"nome":"CURICICA - COSTA AZUL","uf":"RJ","dist_cv":57.8},{"cod":401,"nome":"MAGÉ","uf":"RJ","dist_cv":85.2},{"cod":402,"nome":"GUANABARA CAMPINHO","uf":"RJ","dist_cv":40.0},{"cod":403,"nome":"SHOPPING NOVA IGUACU","uf":"RJ","dist_cv":17.1},{"cod":404,"nome":"PREZUNIC SANTA CRUZ","uf":"RJ","dist_cv":70.9},{"cod":682,"nome":"Coronel Fabriciano","uf":"MG","dist_cv":553.0},{"cod":572,"nome":"CURITIBA BH - RICARDO ELETRO","uf":"MG","dist_cv":438.0},{"cod":407,"nome":"CARIACICA","uf":"ES","dist_cv":556.0},{"cod":247,"nome":"GRANDE RIO","uf":"RJ","dist_cv":31.0},{"cod":412,"nome":"SANTA ROSA","uf":"RJ","dist_cv":67.7},{"cod":415,"nome":"RIO DAS PEDRAS","uf":"RJ","dist_cv":67.7},{"cod":426,"nome":"GUANABARA CAMPO GRANDE","uf":"RJ","dist_cv":33.7},{"cod":417,"nome":"MANILHA","uf":"RJ","dist_cv":84.3},{"cod":419,"nome":"Lote XV - Galpão","uf":"RJ","dist_cv":42.6},{"cod":421,"nome":"LINHARES","uf":"ES","dist_cv":556.0},{"cod":422,"nome":"CACHOEIRO DE ITAPEMIRIM","uf":"ES","dist_cv":556.0},{"cod":423,"nome":"FLAMENGO","uf":"RJ","dist_cv":56.4},{"cod":416,"nome":"GUARUS PLAZA SHOPPING","uf":"RJ","dist_cv":321.4},{"cod":538,"nome":"GUARAPARI","uf":"ES","dist_cv":556.0},{"cod":542,"nome":"METRO BARRA","uf":"RJ","dist_cv":69.2},{"cod":637,"nome":"IBIRITÉ","uf":"MG","dist_cv":445.0},{"cod":638,"nome":"Iguaba grande","uf":"RJ","dist_cv":170.0},{"cod":552,"nome":"RIO BONITO","uf":"RJ","dist_cv":120.0},{"cod":569,"nome":"INHOAÍBA - COSTA AZUL","uf":"RJ","dist_cv":36.6},{"cod":554,"nome":"GUAPIMIRIM","uf":"RJ","dist_cv":89.5},{"cod":566,"nome":"INOÃ","uf":"RJ","dist_cv":88.3},{"cod":556,"nome":"CENTRAL DO BRASIL","uf":"RJ","dist_cv":50.8},{"cod":588,"nome":"IPATINGA","uf":"MG","dist_cv":567.0},{"cod":558,"nome":"ITABIRA","uf":"MG","dist_cv":548.0},{"cod":560,"nome":"ILHA DO GOVERNADOR","uf":"RJ","dist_cv":49.0},{"cod":263,"nome":"ITAGUAÍ","uf":"RJ","dist_cv":51.0},{"cod":567,"nome":"Itaipava","uf":"RJ","dist_cv":100.0},{"cod":568,"nome":"ALAMEDA","uf":"RJ","dist_cv":46.5},{"cod":282,"nome":"ITAPERUNA","uf":"RJ","dist_cv":332.0},{"cod":571,"nome":"GLÓRIA - VILA VELHA","uf":"ES","dist_cv":556.0},{"cod":695,"nome":"Japeri. Perto","uf":"RJ","dist_cv":24.0},{"cod":573,"nome":"SERRA","uf":"ES","dist_cv":556.0},{"cod":578,"nome":"BÚZIOS II - LOJA PERTO","uf":"RJ","dist_cv":209.0},{"cod":703,"nome":"Jardim Alvorada - Nova Iguaçu. Perto","uf":"RJ","dist_cv":19.0},{"cod":338,"nome":"JARDIM GUADALUPE","uf":"RJ","dist_cv":37.0},{"cod":618,"nome":"LAGOINHA MG","uf":"MG","dist_cv":438.0},{"cod":591,"nome":"JACAREÍPE","uf":"ES","dist_cv":556.0},{"cod":600,"nome":"IMBARIÊ","uf":"RJ","dist_cv":57.3},{"cod":601,"nome":"PEDRA DE GUARATIBA","uf":"RJ","dist_cv":76.4},{"cod":603,"nome":"ASSAÍ SANTA CRUZ","uf":"RJ","dist_cv":68.4},{"cod":631,"nome":"LEOPOLDINA","uf":"MG","dist_cv":232.0},{"cod":245,"nome":"MACAÉ","uf":"RJ","dist_cv":227.0},{"cod":617,"nome":"GUARAPARI CENTRO","uf":"ES","dist_cv":556.0},{"cod":708,"nome":"Macaé .Perto","uf":"RJ","dist_cv":228.0},{"cod":621,"nome":"BARRA DE GUARATIBA","uf":"RJ","dist_cv":79.8},{"cod":605,"nome":"Manhuaçu","uf":"MG","dist_cv":425.0},{"cod":346,"nome":"MARICÁ","uf":"RJ","dist_cv":98.0},{"cod":655,"nome":"MIGUEL PEREIRA.PERTO","uf":"RJ","dist_cv":64.3},{"cod":248,"nome":"NOVA FRIBURGO","uf":"RJ","dist_cv":170.0},{"cod":622,"nome":"PARACAMBI","uf":"RJ","dist_cv":36.0},{"cod":633,"nome":"COLATINA","uf":"ES","dist_cv":556.0},{"cod":634,"nome":"LEME","uf":"RJ","dist_cv":61.0},{"cod":555,"nome":"PARAÍBA DO SUL - LOJA PERTO","uf":"RJ","dist_cv":123.0},{"cod":636,"nome":"Realengo","uf":"RJ","dist_cv":43.0},{"cod":671,"nome":"Paraty","uf":"RJ","dist_cv":213.0},{"cod":724,"nome":"Perequê Angra .Perto 100","uf":"RJ","dist_cv":212.0},{"cod":284,"nome":"PIABETÁ","uf":"RJ","dist_cv":64.0},{"cod":642,"nome":"PINDA","uf":"SP","dist_cv":242.0},{"cod":347,"nome":"QUEIMADOS","uf":"RJ","dist_cv":8.0},{"cod":731,"nome":"Quissamã .Perto 100","uf":"RJ","dist_cv":282.0},{"cod":649,"nome":"Pilares","uf":"RJ","dist_cv":38.6},{"cod":650,"nome":"MARATAÍSES. PERTO","uf":"ES","dist_cv":556.0},{"cod":651,"nome":"Tanguá .Perto","uf":"RJ","dist_cv":107.0},{"cod":251,"nome":"RESENDE","uf":"RJ","dist_cv":118.0},{"cod":654,"nome":"BELFORD ROXO CARREFOUR","uf":"RJ","dist_cv":21.4},{"cod":323,"nome":"RIO DAS OSTRAS","uf":"RJ","dist_cv":208.0},{"cod":545,"nome":"SANTA LUZIA","uf":"MG","dist_cv":460.0},{"cod":661,"nome":"JACARÉ - BANCO","uf":"RJ","dist_cv":49.6},{"cod":667,"nome":"Magarça","uf":"RJ","dist_cv":70.0},{"cod":668,"nome":"Aracruz","uf":"ES","dist_cv":556.0},{"cod":670,"nome":"Mauá - Jardim da Prata .Perto","uf":"RJ","dist_cv":72.1},{"cod":639,"nome":"SANTO ANTÔNIO DE PÁDUA.PERTO","uf":"RJ","dist_cv":255.0},{"cod":672,"nome":"SERRA. PERTO","uf":"ES","dist_cv":556.0},{"cod":674,"nome":"Viana .Perto","uf":"ES","dist_cv":556.0},{"cod":256,"nome":"SÃO JOÃO DE MERITI","uf":"RJ","dist_cv":25.0},{"cod":680,"nome":"Sooretama .Perto","uf":"ES","dist_cv":556.0},{"cod":409,"nome":"SÃO PEDRO DA ALDEIA","uf":"RJ","dist_cv":190.0},{"cod":684,"nome":"Barra de São Francisco .Perto","uf":"ES","dist_cv":556.0},{"cod":685,"nome":"Jaguaré .Perto","uf":"ES","dist_cv":556.0},{"cod":687,"nome":"São Francisco de Itabapoana .Perto","uf":"RJ","dist_cv":364.0},{"cod":691,"nome":"Jardim Catarina. Perto","uf":"RJ","dist_cv":78.3},{"cod":692,"nome":"Freguesia","uf":"RJ","dist_cv":55.6},{"cod":693,"nome":"Irajá","uf":"RJ","dist_cv":38.9},{"cod":694,"nome":"Vigário Geral","uf":"RJ","dist_cv":34.0},{"cod":406,"nome":"SEPETIBA","uf":"RJ","dist_cv":74.0},{"cod":557,"nome":"SETE LAGOAS","uf":"MG","dist_cv":504.0},{"cod":698,"nome":"Gramacho","uf":"RJ","dist_cv":40.0},{"cod":736,"nome":"SHOPP PARTAGE BETIM","uf":"MG","dist_cv":459.0},{"cod":702,"nome":"Serra Extrabom","uf":"ES","dist_cv":556.0},{"cod":735,"nome":"SHOPPING BIG","uf":"MG","dist_cv":442.0},{"cod":704,"nome":"Cachambi","uf":"RJ","dist_cv":50.0},{"cod":705,"nome":"Fragoso - Magé","uf":"RJ","dist_cv":69.7},{"cod":707,"nome":"Jardim Redentor .Perto","uf":"RJ","dist_cv":28.1},{"cod":405,"nome":"SHOPPING JARDIM NORTE","uf":"MG","dist_cv":181.0},{"cod":357,"nome":"SHOPPING PARK LAGOS","uf":"RJ","dist_cv":192.0},{"cod":640,"nome":"SHOPPING VALE DO AÇO - IPATINGA - V.V.","uf":"MG","dist_cv":567.0},{"cod":712,"nome":"Terra Vermelha - Vila Velha .Perto","uf":"ES","dist_cv":556.0},{"cod":336,"nome":"SHOPPING VIA BRASIL","uf":"RJ","dist_cv":28.0},{"cod":715,"nome":"KM32. PERTO","uf":"RJ","dist_cv":23.6},{"cod":629,"nome":"SILVA JARDIM - LOJA PERTO","uf":"RJ","dist_cv":151.0},{"cod":719,"nome":"Paciência","uf":"RJ","dist_cv":70.0},{"cod":720,"nome":"Centro Vila Velha","uf":"ES","dist_cv":556.0},{"cod":606,"nome":"Três Corações","uf":"MG","dist_cv":310.0},{"cod":262,"nome":"TRÊS RIOS","uf":"RJ","dist_cv":128.0},{"cod":653,"nome":"Unamar","uf":"RJ","dist_cv":204.0},{"cod":656,"nome":"URUCÂNIA","uf":"RJ","dist_cv":69.0},{"cod":343,"nome":"VOLTA REDONDA II","uf":"RJ","dist_cv":79.0},{"cod":553,"nome":"XERÉM","uf":"RJ","dist_cv":39.8},{"cod":418,"nome":"SEROPÉDICA","uf":"RJ","dist_cv":26.2},{"cod":739,"nome":"BOTAFOGO SÃO CLEMENTE","uf":"RJ","dist_cv":57.4}];
+
+// CD Origins (lat/lng from the Google Maps links)
+const CDS = {
+  cv: { label: 'CD Casa & Vídeo', place: 'CD Casa e Video Queimados RJ', lat: -22.7055, lng: -43.5568, color: '#0057b7', waypoints: ['Rodovia Presidente Dutra, Rio de Janeiro, RJ', 'Avenida Brasil, Rio de Janeiro, RJ'] },
+  tr: { label: 'CD Tele-Rio', place: 'CD GB Tele-Rio Rio de Janeiro RJ', lat: -22.8749, lng: -43.2849, color: '#c8102e', waypoints: ['Rodovia Presidente Dutra, Rio de Janeiro, RJ', 'Avenida Brasil, Rio de Janeiro, RJ'] },
+  hf: { label: 'CD Hortifrúti Centro RJ', place: 'Hortifruti CD Centro Rio de Janeiro RJ', lat: -22.9068, lng: -43.1729, color: '#2d8f47', waypoints: ['Avenida Brasil, Rio de Janeiro, RJ', 'Linha Amarela, Rio de Janeiro, RJ'] },
+  am: { label: 'CD Americanas', place: 'CD Lojas Americanas Rio de Janeiro RJ', lat: -22.8870, lng: -43.2760, color: '#ff0000', waypoints: ['Rodovia Presidente Dutra, Rio de Janeiro, RJ', 'Avenida Brasil, Rio de Janeiro, RJ'] }
+};
+
+// State
+let apiKey = localStorage.getItem('gmaps_api_key') || '';
+let cvResults = {}; // cod -> {km, routeUrl}
+let sortState = { cv: {col:'cod', asc:true}, comp: {col:'cod', asc:true} };
+let cvFiltered = [...CV_STORES];
+let compFiltered = [...CV_STORES];
+let cdSavedResults = { tr: [], hf: [], am: [] };
+
+// =============================================
+//   API KEY
+// =============================================
+function saveApiKey() {
+  const k = document.getElementById('apiKey').value.trim();
+  if (!k) { alert('Insira a API key.'); return; }
+  apiKey = k;
+  localStorage.setItem('gmaps_api_key', k);
+  document.getElementById('apiStatus').textContent = '✅ Salva';
+  setTimeout(() => document.getElementById('apiStatus').textContent = '', 2000);
+}
+
+window.onload = () => {
+  if (apiKey) {
+    document.getElementById('apiKey').value = apiKey;
+    document.getElementById('apiStatus').textContent = '✅ Carregada';
+  }
+  renderCVTable();
+  renderCompTable();
+};
+
+// =============================================
+//   TABS
+// =============================================
+function switchTab(id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  document.getElementById('panel-' + id).classList.add('active');
+}
+
+// =============================================
+//   DISTANCE API
+// =============================================
+async function getDistance(origin, destination, apiKeyOverride) {
+  const key = apiKeyOverride || apiKey;
+  if (!key) throw new Error('API key não configurada');
+  
+  const url = `https://maps.googleapis.com/maps/api/distancematrix/json?origins=${encodeURIComponent(origin)}&destinations=${encodeURIComponent(destination)}&mode=driving&language=pt-BR&key=${key}`;
+  
+  // Use CORS proxy approach - direct call from browser
+  const response = await fetch(`https://maps.googleapis.com/maps/api/distancematrix/json?origins=${encodeURIComponent(origin)}&destinations=${encodeURIComponent(destination)}&mode=driving&language=pt-BR&key=${key}`);
+  
+  if (!response.ok) throw new Error('Erro na API');
+  const data = await response.json();
+  
+  if (data.status !== 'OK') throw new Error(data.status);
+  const el = data.rows[0]?.elements[0];
+  if (!el || el.status !== 'OK') throw new Error(el?.status || 'SEM_ROTA');
+  
+  return el.distance.value / 1000; // km
+}
+
+function buildRouteUrl(cdKey, destination) {
+  const cd = CDS[cdKey];
+  const wp = cd.waypoints.map(w => encodeURIComponent(w)).join('|');
+  return `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(cd.place)}&destination=${encodeURIComponent(destination)}&waypoints=${wp}&travelmode=driving`;
+}
+
+// =============================================
+//   CV TABLE
+// =============================================
+function renderCVTable() {
+  const tbody = document.getElementById('cv-tbody');
+  const q = (document.getElementById('cv-filter')?.value || '').toLowerCase();
+  const uf = document.getElementById('cv-uf')?.value || '';
+  
+  cvFiltered = CV_STORES.filter(s => {
+    if (q && !s.nome.toLowerCase().includes(q) && !String(s.cod).includes(q)) return false;
+    if (uf && s.uf !== uf) return false;
+    return true;
+  });
+
+  const sc = sortState.cv;
+  cvFiltered.sort((a, b) => {
+    let va = sc.col === 'dist_our' ? (cvResults[a.cod]?.km ?? -Infinity) : a[sc.col];
+    let vb = sc.col === 'dist_our' ? (cvResults[b.cod]?.km ?? -Infinity) : b[sc.col];
+    if (typeof va === 'string') return sc.asc ? va.localeCompare(vb) : vb.localeCompare(va);
+    return sc.asc ? va - vb : vb - va;
+  });
+
+  document.getElementById('cv-count').textContent = `${cvFiltered.length} lojas`;
+
+  tbody.innerHTML = cvFiltered.map(s => {
+    const r = cvResults[s.cod];
+    const kmOur = r?.km;
+    const routeUrl = r?.routeUrl || buildRouteUrl('cv', s.nome + ' ' + s.uf + ' Brasil');
+    const statusHtml = r ? `<span class="status-badge status-ok">✓ Calc</span>` : `<span class="status-badge status-pend">● Pendente</span>`;
+    const kmHtml = kmOur !== undefined ? `<span class="km-our">${kmOur.toFixed(1)}</span>` : '<span style="color:var(--muted)">—</span>';
+    return `<tr id="cv-row-${s.cod}">
+      <td>${s.cod}</td>
+      <td>${s.nome}</td>
+      <td><span class="uf-badge">${s.uf}</span></td>
+      <td>${s.dist_cv.toFixed(1)}</td>
+      <td>${kmHtml}</td>
+      <td>${statusHtml}</td>
+      <td><a href="${routeUrl}" target="_blank">🗺 Ver</a></td>
+      <td><button class="btn btn-sm" onclick="calcSingleCV(${s.cod})" id="btn-cv-${s.cod}">📐</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function filterCVTable() { renderCVTable(); }
+
+function sortTable(panel, col) {
+  const s = sortState[panel];
+  if (s.col === col) s.asc = !s.asc;
+  else { s.col = col; s.asc = true; }
+  renderCVTable();
+}
+
+async function calcSingleCV(cod) {
+  if (!apiKey) { alert('Configure a API Key do Google Maps primeiro.'); return; }
+  const store = CV_STORES.find(s => s.cod === cod);
+  if (!store) return;
+  
+  const btn = document.getElementById(`btn-cv-${cod}`);
+  if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>'; }
+  
+  const origin = CDS.cv.place;
+  const dest = `${store.nome}, ${store.uf}, Brasil`;
+  
+  try {
+    const km = await getDistance(origin, dest);
+    const routeUrl = buildRouteUrl('cv', dest);
+    cvResults[cod] = { km, routeUrl };
+    updateCompResult(cod, km, routeUrl);
+    renderCVTable();
+    renderCompTable();
+    updateCompStats();
+  } catch (e) {
+    if (btn) { btn.disabled = false; btn.textContent = '⚠️'; }
+    showError(`Erro em ${store.nome}: ${e.message}`);
+  }
+}
+
+async function calcAllCV() {
+  if (!apiKey) { alert('Configure a API Key do Google Maps primeiro.'); return; }
+  
+  const stores = cvFiltered;
+  const progress = document.getElementById('cv-progress');
+  const fill = document.getElementById('cv-progress-fill');
+  const label = document.getElementById('cv-progress-label');
+  const btn = document.getElementById('btn-calc-all-cv');
+  
+  progress.style.display = 'block';
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Calculando...';
+  
+  let done = 0;
+  const BATCH = 5;
+  
+  for (let i = 0; i < stores.length; i += BATCH) {
+    const batch = stores.slice(i, i + BATCH);
+    await Promise.all(batch.map(async store => {
+      if (cvResults[store.cod]) { done++; return; }
+      try {
+        const dest = `${store.nome}, ${store.uf}, Brasil`;
+        const km = await getDistance(CDS.cv.place, dest);
+        const routeUrl = buildRouteUrl('cv', dest);
+        cvResults[store.cod] = { km, routeUrl };
+        updateCompResult(store.cod, km, routeUrl);
+      } catch(e) { /* skip */ }
+      done++;
+      const pct = Math.round((done / stores.length) * 100);
+      fill.style.width = pct + '%';
+      label.textContent = `${done} / ${stores.length} lojas calculadas (${pct}%)`;
+    }));
+    renderCVTable();
+    renderCompTable();
+    updateCompStats();
+    await new Promise(r => setTimeout(r, 200));
+  }
+  
+  btn.disabled = false;
+  btn.textContent = '⚡ Calcular Todas';
+  progress.style.display = 'none';
+  label.textContent = '';
+}
+
+function clearCVResults() {
+  if (!confirm('Limpar todos os resultados calculados?')) return;
+  cvResults = {};
+  renderCVTable();
+  renderCompTable();
+  updateCompStats();
+}
+
+// =============================================
+//   CD FREE CALC (TR, HF, AM)
+// =============================================
+async function calcFreeFromCD(cdKey) {
+  if (!apiKey) { alert('Configure a API Key do Google Maps primeiro.'); return; }
+  const input = document.getElementById(`${cdKey}-dest`);
+  const dest = input.value.trim();
+  if (!dest) { alert('Digite o destino.'); return; }
+  
+  const btn = document.getElementById(`btn-${cdKey}-calc`);
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Calculando...';
+  
+  try {
+    const km = await getDistance(CDS[cdKey].place, dest);
+    const routeUrl = buildRouteUrl(cdKey, dest);
+    
+    // Save to list
+    cdSavedResults[cdKey].push({ dest, km, routeUrl, time: new Date().toLocaleTimeString('pt-BR') });
+    renderCDResult(cdKey, dest, km, routeUrl);
+    renderCDSavedList(cdKey);
+  } catch(e) {
+    document.getElementById(`${cdKey}-results`).innerHTML = `<div class="msg-box msg-error">Erro: ${e.message}. Verifique a API Key e o endereço.</div>`;
+  }
+  
+  btn.disabled = false;
+  btn.textContent = '📐 Calcular';
+}
+
+function renderCDResult(cdKey, dest, km, routeUrl) {
+  const cd = CDS[cdKey];
+  document.getElementById(`${cdKey}-results`).innerHTML = `
+    <div class="free-result">
+      <h3>📍 ${dest}</h3>
+      <div style="display:flex; align-items:baseline; gap:8px; margin-bottom:12px;">
+        <span class="km-big">${km.toFixed(1)}</span>
+        <span class="km-unit">km do ${cd.label}</span>
+      </div>
+      <div class="waypoints-note">Via: Pres. Dutra / Av. Brasil / Linha Amarela</div>
+      <div style="margin-top:12px;">
+        <a href="${routeUrl}" target="_blank" class="btn btn-sm">🗺 Ver Rota no Google Maps</a>
+      </div>
+    </div>`;
+}
+
+function renderCDSavedList(cdKey) {
+  const list = cdSavedResults[cdKey];
+  if (!list.length) return;
+  const el = document.getElementById(`${cdKey}-saved-list`);
+  el.innerHTML = `
+    <table>
+      <thead><tr><th>DESTINO</th><th>KM CALCULADO</th><th>HORA</th><th>ROTA</th></tr></thead>
+      <tbody>
+        ${list.map(r => `<tr>
+          <td>${r.dest}</td>
+          <td class="km-our">${r.km.toFixed(1)} km</td>
+          <td style="color:var(--muted)">${r.time}</td>
+          <td><a href="${r.routeUrl}" target="_blank">🗺 Ver</a></td>
+        </tr>`).join('')}
+      </tbody>
+    </table>`;
+}
+
+// =============================================
+//   BUSCA LIVRE
+// =============================================
+async function calcLivre() {
+  if (!apiKey) { alert('Configure a API Key do Google Maps primeiro.'); return; }
+  const cdKey = document.getElementById('livre-cd').value;
+  const dest = document.getElementById('livre-dest').value.trim();
+  if (!dest) { alert('Digite o destino.'); return; }
+  
+  const el = document.getElementById('livre-result');
+  el.innerHTML = '<div class="msg-box msg-info"><span class="spinner"></span> Calculando rota...</div>';
+  
+  try {
+    const km = await getDistance(CDS[cdKey].place, dest);
+    const routeUrl = buildRouteUrl(cdKey, dest);
+    el.innerHTML = `
+      <div class="free-result">
+        <h3>📍 ${dest}</h3>
+        <div style="margin-bottom:6px; font-size:0.8rem; color:var(--muted);">Origem: ${CDS[cdKey].label}</div>
+        <div style="display:flex; align-items:baseline; gap:8px; margin-bottom:12px;">
+          <span class="km-big">${km.toFixed(1)}</span>
+          <span class="km-unit">km</span>
+        </div>
+        <div class="waypoints-note">Via: Pres. Dutra / Av. Brasil / Linha Amarela</div>
+        <div style="margin-top:12px;">
+          <a href="${routeUrl}" target="_blank" class="btn">🗺 Ver Rota no Google Maps — Conferir Traçado</a>
+        </div>
+        <div style="margin-top:8px; font-size:0.75rem; color:var(--muted);">
+          ⚠️ Confira sempre o traçado pela criminalidade na região. Algumas ruas e bairros podem precisar de rota alternativa.
+        </div>
+      </div>`;
+  } catch(e) {
+    el.innerHTML = `<div class="msg-box msg-error">Erro: ${e.message}. Verifique a API Key e o endereço.</div>`;
+  }
+}
+
+// =============================================
+//   COMPARATIVO
+// =============================================
+function updateCompResult(cod, km, routeUrl) {
+  // called when a CV result is added
+}
+
+function renderCompTable() {
+  const tbody = document.getElementById('comp-tbody');
+  const q = (document.getElementById('comp-filter')?.value || '').toLowerCase();
+  const uf = document.getElementById('comp-uf')?.value || '';
+  const statusF = document.getElementById('comp-status')?.value || '';
+  
+  compFiltered = CV_STORES.filter(s => {
+    if (q && !s.nome.toLowerCase().includes(q) && !String(s.cod).includes(q)) return false;
+    if (uf && s.uf !== uf) return false;
+    const r = cvResults[s.cod];
+    if (statusF === 'calc' && !r) return false;
+    if (statusF === 'pend' && r) return false;
+    if (statusF === 'maior' && (!r || r.km <= s.dist_cv)) return false;
+    if (statusF === 'menor' && (!r || r.km >= s.dist_cv)) return false;
+    return true;
+  });
+
+  const sc = sortState.comp;
+  compFiltered.sort((a, b) => {
+    let va, vb;
+    if (sc.col === 'dist_our') { va = cvResults[a.cod]?.km ?? -Infinity; vb = cvResults[b.cod]?.km ?? -Infinity; }
+    else if (sc.col === 'diff') {
+      va = cvResults[a.cod] ? cvResults[a.cod].km - a.dist_cv : -Infinity;
+      vb = cvResults[b.cod] ? cvResults[b.cod].km - b.dist_cv : -Infinity;
+    }
+    else { va = a[sc.col]; vb = b[sc.col]; }
+    if (typeof va === 'string') return sc.asc ? va.localeCompare(vb) : vb.localeCompare(va);
+    return sc.asc ? va - vb : vb - va;
+  });
+
+  document.getElementById('comp-count').textContent = `${compFiltered.length} lojas`;
+
+  tbody.innerHTML = compFiltered.map(s => {
+    const r = cvResults[s.cod];
+    const kmOur = r?.km;
+    const diff = kmOur !== undefined ? kmOur - s.dist_cv : null;
+    const diffHtml = diff !== null
+      ? diff > 0.5 ? `<span class="diff-pos">▲ +${diff.toFixed(1)}</span>`
+        : diff < -0.5 ? `<span class="diff-neg">▼ ${diff.toFixed(1)}</span>`
+        : `<span class="diff-zero">≈ ${diff.toFixed(1)}</span>`
+      : '<span style="color:var(--muted)">—</span>';
+    
+    const statusHtml = r 
+      ? (diff > 0.5 ? '<span class="status-badge status-err">▲ Nosso maior</span>'
+        : diff < -0.5 ? '<span class="status-badge status-ok">▼ Nosso menor</span>'
+        : '<span class="status-badge status-ok">≈ Igual</span>')
+      : '<span class="status-badge status-pend">● Pendente</span>';
+    
+    const routeUrl = r?.routeUrl || buildRouteUrl('cv', s.nome + ' ' + s.uf + ' Brasil');
+    
+    return `<tr>
+      <td>${s.cod}</td>
+      <td>${s.nome}</td>
+      <td><span class="uf-badge">${s.uf}</span></td>
+      <td>${s.dist_cv.toFixed(1)}</td>
+      <td>${kmOur !== undefined ? `<span class="km-our">${kmOur.toFixed(1)}</span>` : '<span style="color:var(--muted)">—</span>'}</td>
+      <td>${diffHtml}</td>
+      <td>${statusHtml}</td>
+      <td><a href="${routeUrl}" target="_blank">🗺 Ver</a></td>
+    </tr>`;
+  }).join('');
+}
+
+function filterComp() { renderCompTable(); updateCompStats(); }
+
+function sortCompTable(col) {
+  const s = sortState.comp;
+  if (s.col === col) s.asc = !s.asc;
+  else { s.col = col; s.asc = true; }
+  renderCompTable();
+}
+
+function updateCompStats() {
+  const calcs = Object.values(cvResults);
+  document.getElementById('stat-calc').textContent = calcs.length;
+  
+  if (!calcs.length) {
+    document.getElementById('stat-maior').textContent = '—';
+    document.getElementById('stat-media').textContent = '—';
+    return;
+  }
+  
+  const diffs = CV_STORES
+    .filter(s => cvResults[s.cod])
+    .map(s => Math.abs(cvResults[s.cod].km - s.dist_cv));
+  
+  const maxDiff = Math.max(...diffs);
+  const avgDiff = diffs.reduce((a,b) => a+b, 0) / diffs.length;
+  
+  document.getElementById('stat-maior').textContent = maxDiff.toFixed(1);
+  document.getElementById('stat-media').textContent = avgDiff.toFixed(1);
+}
+
+function showError(msg) {
+  console.warn(msg);
+}
+
+// Enter key on livre
+document.addEventListener('DOMContentLoaded', () => {
+  const livreInput = document.getElementById('livre-dest');
+  if (livreInput) {
+    livreInput.addEventListener('keydown', e => { if (e.key === 'Enter') calcLivre(); });
+  }
+  ['tr','hf','am'].forEach(cd => {
+    const el = document.getElementById(`${cd}-dest`);
+    if (el) el.addEventListener('keydown', e => { if (e.key === 'Enter') calcFreeFromCD(cd); });
+  });
+});
+</script>
+</body>
+</html>
