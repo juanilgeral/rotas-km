@@ -725,19 +725,45 @@ function switchTab(id) {
 }
 
 // =============================================
-//   DISTANCE API — via Apps Script proxy
+//   DISTANCE API — OpenRouteService (gratuito, sem CORS)
 // =============================================
-const PROXY_URL = 'https://script.google.com/macros/s/AKfycbxzm57k46d_dVxOlXajzIuK-doWi4C2eg-QJ8FR4nX9ECrnFrrxdhvCm6002koxDN4LDQ/exec';
+const ORS_KEY = 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6ImE5MGQ2OTg5MGM4YTRlZDdiNDkzZmY4NmMyNmQ3ZGFhIiwiaCI6Im11cm11cjY0In0=';
+
+async function geocode(place) {
+  const url = 'https://api.openrouteservice.org/geocode/search?api_key=' + ORS_KEY + '&text=' + encodeURIComponent(place) + '&boundary.country=BR&size=1';
+  const r = await fetch(url);
+  const d = await r.json();
+  if (!d.features || !d.features.length) throw new Error('Local não encontrado: ' + place);
+  const [lng, lat] = d.features[0].geometry.coordinates;
+  return [lng, lat];
+}
 
 async function getDistance(origin, destination) {
-  const url = PROXY_URL + '?origin=' + encodeURIComponent(origin) + '&destination=' + encodeURIComponent(destination);
-  const response = await fetch(url);
-  if (!response.ok) throw new Error('Erro no proxy');
-  const data = await response.json();
-  if (data.status !== 'OK') throw new Error(data.status);
-  const el = data.rows[0]?.elements[0];
-  if (!el || el.status !== 'OK') throw new Error(el?.status || 'SEM_ROTA');
-  return el.distance.value / 1000;
+  const [oLng, oLat] = await geocode(origin);
+  const [dLng, dLat] = await geocode(destination);
+  
+  const url = 'https://api.openrouteservice.org/v2/directions/driving-car';
+  const body = {
+    coordinates: [[oLng, oLat], [dLng, dLat]]
+  };
+  
+  const r = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Authorization': ORS_KEY,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(body)
+  });
+  
+  if (!r.ok) {
+    const err = await r.text();
+    throw new Error('Erro ORS: ' + err);
+  }
+  
+  const d = await r.json();
+  const meters = d.routes[0].summary.distance;
+  return meters / 1000;
 }
 
 function buildRouteUrl(cdKey, destination) {
@@ -856,7 +882,7 @@ async function calcAllCV() {
     renderCVTable();
     renderCompTable();
     updateCompStats();
-    await new Promise(r => setTimeout(r, 200));
+    await new Promise(r => setTimeout(r, 1000));
   }
   
   btn.disabled = false;
